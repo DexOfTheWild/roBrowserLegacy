@@ -14,9 +14,10 @@
 		"build:effectviewer": "npm run build -- -E",
 		"build:threadhandler": "npm run build -- -T",
 		"build:html": "npm run build -- -H",
+		"build:styles": "npm run build -- -Y",
 		"build:ai": "npm run build -- -A",
-		"build:all": "npm run build -- --all",
-		"build:all:minify": "npm run build -- --all --m"
+		"build:all:minify": "npm run build -- --all --m",
+		"build:all": "npm run build -- --all"
 	},
 	"author": "Vincent Thibault",
 	"license": "GNU GPL V3",
