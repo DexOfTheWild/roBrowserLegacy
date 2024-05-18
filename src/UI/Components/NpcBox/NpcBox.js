@@ -27,7 +27,7 @@ define(function(require)
 	/**
 	 * Create NpcBox component
 	 */
-	var NpcBox = new UIComponent( 'NpcBox', htmlText, cssText );
+	var NpcBox = new UIComponent( 'NpcBox', htmlText, cssText, { htmlTarget: '#DialogueBox'} );
 
 
 
@@ -41,13 +41,24 @@ define(function(require)
 	 * @var {integer} NPC GID
 	 */
 	var _ownerID = 0;
-
-
+	
+	/**
+	 * @var {string} How many messages are in the current batch
+	 */
+	var _textCount = 0;
+	
+	var _existingText = [];
+	
+	var _npcName = '';
+	
 	/**
 	 * Initialize Component
 	 */
 	NpcBox.init = function init()
 	{
+		_textCount = 0;
+		_existingText = [];
+		
 		this.ui.css({
 			top: Math.max(100, Renderer.height/2 - 200),
 			left: Math.max( Renderer.width/3, 20)
@@ -62,8 +73,7 @@ define(function(require)
 		this.ui.find('.content').mousedown(function(event){
 			event.stopImmediatePropagation();
 		});
-
-		this.draggable();
+		// this.draggable();
 	};
 
 
@@ -95,10 +105,12 @@ define(function(require)
 		switch (event.which) {
 			case KEYS.ENTER:
 				if (this.ui.find('.next').is(':visible')) {
+					event.preventDefault();
 					this.next();
 					break;
 				}
 				else if (this.ui.find('.close').is(':visible')) {
+					event.preventDefault();
 					this.close();
 					break;
 				}
@@ -106,6 +118,7 @@ define(function(require)
 
 			case KEYS.ESCAPE:
 				if (this.ui.find('.close').is(':visible')) {
+					event.preventDefault();
 					this.close();
 					break;
 				}
@@ -131,12 +144,26 @@ define(function(require)
 		var content = this.ui.find('.content');
 		_ownerID    = gid;
 
+
+		let container = '<span/>';
+		
+		if (_textCount === 0 && text.startsWith('[') && text.endsWith(']')) {
+			if (content.find('#NpcName').length === 0) {
+				text = text.substring(1, text.length - 1);
+				_npcName = text;
+				container = '<h1 id="NpcName" />';
+			} else {
+				return;
+			}
+		}
+		
 		if (_needCleanUp) {
 			_needCleanUp = false;
-			content.text('');
+			_textCount = 0;
 		}
-
-		content.append( jQuery('<div/>').text(text) );
+		
+		content.append( jQuery(container).text(text) );
+		_textCount++;
 	};
 
 
@@ -170,6 +197,10 @@ define(function(require)
 	NpcBox.next = function Next()
 	{
 		_needCleanUp = true;
+		_textCount = 0;
+		if (this.ui.find('.content').text() !== '') {
+			_existingText.push(this.ui.find('.content').text());
+		}
 		this.ui.find('.next').hide();
 		this.onNextPressed( _ownerID );
 	};
@@ -181,10 +212,19 @@ define(function(require)
 	NpcBox.close = function Close()
 	{
 		_needCleanUp = true;
+		_textCount = 0;
 		this.ui.find('.close').hide();
 		this.onClosePressed( _ownerID );
 	};
-
+	
+	NpcBox.resetMessage = function ResetMessage() {
+		_textCount = 0;
+		_existingText = [];
+		this.ui.find('.content').children('span').remove();
+		return this;
+	}
+	
+	document.onkeydown = NpcBox.onKeyDown.bind(NpcBox);
 
 	/**
 	 * Callback

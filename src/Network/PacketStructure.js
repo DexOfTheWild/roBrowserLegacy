@@ -381,7 +381,7 @@ define(['Utils/BinaryWriter', './PacketVerManager', 'Utils/Struct', 'Core/Config
 
 		pkt.writeShort(ver[1]);
 		pkt.view.setUint16(ver[3], this.index, true);
-		if(PACKETVER.value >= 20120925) {
+		if(PACKETVER.value >= 20130320) {
 			pkt.view.setUint32(ver[4], this.wearLocation, true);
 		} else {
 			pkt.view.setUint16(ver[4], this.wearLocation, true);

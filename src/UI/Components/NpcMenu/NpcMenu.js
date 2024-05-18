@@ -27,7 +27,8 @@ define(function(require)
 	/**
 	 * Create NPC Menu component
 	 */
-	var NpcMenu = new UIComponent( 'NpcMenu', htmlText, cssText );
+	const htmlTarget = '#DialogueBox';
+	var NpcMenu = new UIComponent( 'NpcMenu', htmlText, cssText, { htmlTarget } );
 
 
 	/**
@@ -55,26 +56,14 @@ define(function(require)
 			left: Math.max( Renderer.width/3, 20)
 		});
 
-		this.draggable();
+		// this.draggable();
 
 		var self = this;
 		this.ui.find('.content')
-
-			// Scroll feature should block at each line
-			.on('mousewheel DOMMouseScroll', onScroll)
-
-			// Manage indexes
-			.on('mousedown', 'div', function(event) {
+			.on('click',  'button', function () {
+				console.log("Let's call it");
 				selectIndex.call(self, jQuery(this));
-			})
-
-			// Select index
-			.on('dblclick',  'div', validate.bind(this))
-
-			// Stop drag drop
-			.mousedown(function(event) {
-				event.stopImmediatePropagation();
-				return false;
+				validate.bind(self).call();
 			});
 	};
 
@@ -107,11 +96,11 @@ define(function(require)
 				break;
 
 			case KEYS.UP:
-				count  = this.ui.find('.content div').length;
+				count  = this.ui.find('.content button').length;
 				_index = Math.max( _index - 1, 0 );
 
-				this.ui.find('.content div').removeClass('selected');
-				this.ui.find('.content div:eq('+ _index +')').addClass('selected');
+				this.ui.find('.content button').removeClass('selected');
+				this.ui.find('.content button:eq('+ _index +')').addClass('selected');
 
 				content = this.ui.find('.content')[0];
 				top     = _index * 20;
@@ -122,11 +111,11 @@ define(function(require)
 				break;
 
 			case KEYS.DOWN:
-				count  = this.ui.find('.content div').length;
+				count  = this.ui.find('.content button').length;
 				_index = Math.min( _index + 1, count -1 );
 
-				this.ui.find('.content div').removeClass('selected');
-				this.ui.find('.content div:eq('+ _index +')').addClass('selected');
+				this.ui.find('.content button').removeClass('selected');
+				this.ui.find('.content button:eq('+ _index +')').addClass('selected');
 
 				content = this.ui.find('.content')[0];
 				top     = _index * 20;
@@ -166,15 +155,12 @@ define(function(require)
 		for (i = 0, j = 0, count = list.length; i < count; ++i) {
 			// Don't display empty menu
 			if (list[i].length) {
-				jQuery('<div/>')
+				jQuery('<button/>')
 					.text(list[i])
 					.data('index', j++)
 					.appendTo(content);
 			}
 		}
-
-		content.find('div:first')
-			.addClass('selected');
 	};
 
 
@@ -183,6 +169,7 @@ define(function(require)
 	 */
 	function validate()
 	{
+		console.log('Validating', _ownerID, _index + 1);
 		this.onSelectMenu( _ownerID, _index + 1 );
 	}
 
@@ -201,8 +188,8 @@ define(function(require)
 	 */
 	function selectIndex($this)
 	{
-		this.ui.find('.content div').removeClass('selected');
-		$this.addClass('selected');
+		console.log('Selecting', $this.data('index'));
+		this.ui.find('.content button').removeClass('selected');
 
 		_index = parseInt($this.data('index'), 10);
 	}

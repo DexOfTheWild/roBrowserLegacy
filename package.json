@@ -5,6 +5,7 @@
 	"scripts": {
 		"serve": "live-server ./dist/Web",
 		"live": "live-server .  --no-browser --port=8000",
+		"livereload": "live-reload --port 9091 ./dist/Web/styles/**/*",
 		"build": "node ./tools/builder-web.js",
 		"build:online": "npm run build -- -O",
 		"build:mapviewer": "npm run build -- -V",
@@ -15,14 +16,23 @@
 		"build:threadhandler": "npm run build -- -T",
 		"build:html": "npm run build -- -H",
 		"build:ai": "npm run build -- -A",
-		"build:styles": "npm run build -- -Y",
-		"build:all": "npm run build -- --all"
+		"build:all": "npm run build -- --all",
+		"build:styles": "sass ./styles:./dist/Web/styles",
+		"build:styles:watch": "npm run build:styles -- --watch & grunt watch"
 	},
 	"author": "Vincent Thibault",
 	"license": "GNU GPL V3",
 	"devDependencies": {
+		"css-loader": "^7.1.1",
+		"grunt": "^1.6.1",
+		"grunt-contrib-sass": "^2.0.0",
+		"grunt-contrib-watch": "^1.1.0",
 		"live-server": "^1.2.2",
+		"livereload-js": "^4.0.2",
 		"requirejs": "^2.3.6",
-		"terser": "^5.19.4"
+		"sass": "^1.77.2",
+		"sass-loader": "^14.2.1",
+		"webpack": "^5.91.0",
+		"webpack-cli": "^5.1.4"
 	}
 }

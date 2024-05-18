@@ -55,6 +55,8 @@ define(function( require )
 	{
 		NpcBox.append();
 		NpcBox.addNext( pkt.NAID );
+		// Automatically continue
+		// NpcBox.next();
 	}
 
 
@@ -109,7 +111,8 @@ define(function( require )
 			if (index === 255) {
 				NpcBox.remove();
 			}
-
+			if (document.getElementById("NpcBox")) NpcBox.resetMessage();
+			
 			var pkt  = new PACKET.CZ.CHOOSE_MENU();
 			pkt.NAID = NAID;
 			pkt.num  = index;
@@ -273,8 +276,11 @@ define(function( require )
 					break;
 
 				case 2:
-					img.style.bottom = '0px';
-					img.style.right  = '0px';
+					img.style.left = '50%';
+					img.style.transform = 'translateX(-50%)';
+					img.style.height = 'auto';
+					img.style.width = '450px';
+					img.style.maxWidth = '75%';
 					break;
 
 				case 3:

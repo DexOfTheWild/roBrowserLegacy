@@ -34,6 +34,9 @@ define( ['jquery', 'DB/DBManager'], function( jQuery, DB )
 			// Msg color ^000000
 			reg = /\^([a-fA-F0-9]{6})/ ;
 			while ((result = reg.exec(txt))) {
+				if (result[1] === '000000') {
+					result[1] = 'FFFFFF';
+				}
 				txt = txt.replace( result[0], '<span style="color:#' + result[1] + '">') + '</span>';
 			}
 
