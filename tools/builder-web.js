@@ -155,7 +155,7 @@ function createHTML(){
         <html>
             <head>
                 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-                <title>roBrowser [${package.version} - ${buildDate}]</title>
+                <title>dexRO</title>
                 <script>
                     document.write('<script src="http://'
                         + location.host.split(':')[0]
@@ -188,7 +188,9 @@ function createHTML(){
                             skipServerList:  true,
                             skipIntro:       true,
                             clientVersionMode: 'PacketVer',
-                            plugins: {},
+                            plugins: {
+                                KeyToMove: '/plugins/KeyToMove/KeyToMove.js'
+                            },
 							clientHash: null,
 							enableCashShop: false,
 							enableBank: false,
