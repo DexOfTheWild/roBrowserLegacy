@@ -155,7 +155,7 @@ function createHTML(){
         <html>
             <head>
                 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-                <title>roBrowser [${package.version} - ${buildDate}]</title>
+                <title>dexRO</title>
                 <script>
                     document.write('<script src="http://'
                         + location.host.split(':')[0]
@@ -169,18 +169,18 @@ function createHTML(){
                     window.addEventListener("load", (event) => {
                         window.ROConfig = {
                             development: false, // don't need to compile javascript files in chrome app since it's already a package.
-                            remoteClient:  "http://143.198.139.212/client",
+                            remoteClient:  "http://localhost",
                             servers: [
                                 {
                                     display: 'Localhost Server',
                                     desc: "roBrowser's demo server",
-                                    address: '164.92.103.39',
+                                    address: 'localhost',
                                     port: 6900,
                                     version: 55,
                                     langtype: 5,
                                     packetver: 20131223,
                                     forceUseAddress: false,
-                                    socketProxy: "ws://164.92.103.39:5999/",
+                                    socketProxy: "ws://localhost:5999/",
                                     packetKeys: false
                                 },
                             ],
@@ -188,7 +188,9 @@ function createHTML(){
                             skipServerList:  true,
                             skipIntro:       true,
                             clientVersionMode: 'PacketVer',
-                            plugins: {},
+                            plugins: {
+                                KeyToMove: '/plugins/KeyToMove/KeyToMove.js'
+                            },
 							clientHash: null,
 							enableCashShop: false,
 							enableBank: false,

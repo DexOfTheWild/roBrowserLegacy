@@ -41,7 +41,9 @@ define(function( require )
 	 */
 	function onMessage( pkt )
 	{
+		
 		NpcBox.append();
+		NpcBox.ui.find('.content').show();
 		NpcBox.setText( pkt.msg, pkt.NAID);
 	}
 
@@ -85,11 +87,6 @@ define(function( require )
 		if (NpcBox.ownerID === pkt.NAID) {
 			NpcBox.remove();
 			NpcMenu.remove();
-
-			var cutin = document.getElementById('cutin');
-			if (cutin && cutin.parentNode) {
-				document.body.removeChild(cutin);
-			}
 		}
 	}
 
@@ -101,6 +98,12 @@ define(function( require )
 	 */
 	function onMenuAppear( pkt )
 	{
+		if (NpcBox?.typer.isTyping) {
+			return NpcBox.typer.onCompletion().then(() => {
+				onMenuAppear(pkt);
+			});
+		}
+		
 		NpcMenu.append();
 		NpcMenu.setMenu( pkt.msg, pkt.NAID );
 
@@ -237,10 +240,13 @@ define(function( require )
 	 */
 	function onCutin( pkt )
 	{
+		// const _target = document.body;
+	
+		const _target = NpcBox.ui.find('.border .portrait');
 		// Only one instance of cutin
 		var cutin = document.getElementById('cutin');
 		if (cutin) {
-			document.body.removeChild( cutin );
+			_target.children().remove();
 		}
 
 		// Sending empty string just hide the cutin
@@ -255,47 +261,47 @@ define(function( require )
 		Client.loadFile( DB.INTERFACE_PATH + 'illust/' + pkt.imageName, function( url ){
 			var img            = new Image();
 			img.src            = url;
-			img.style.position = 'absolute';
-			img.style.zIndex   = 40;
+			// img.style.position = 'absolute';
+			// img.style.zIndex   = 40;
 			img.id             = 'cutin';
 			img.draggable      = false;
 
-			switch (pkt.type) {
-				default:
-					return;
+			// switch (pkt.type) {
+			// 	default:
+			// 		return;
 
-				case 0:
-					img.style.bottom = '0px';
-					img.style.left   = '0px';
-					break;
+			// 	case 0:
+			// 		img.style.bottom = '0px';
+			// 		img.style.left   = '0px';
+			// 		break;
 
-				case 1:
-					img.style.bottom     = '0px';
-					img.style.left       = '50%';
-					img.style.marginLeft = '-' + Math.floor(img.width / 2) + 'px';
-					break;
+			// 	case 1:
+			// 		img.style.bottom     = '0px';
+			// 		img.style.left       = '50%';
+			// 		img.style.marginLeft = '-' + Math.floor(img.width / 2) + 'px';
+			// 		break;
 
-				case 2:
-					img.style.left = '50%';
-					img.style.transform = 'translateX(-50%)';
-					img.style.height = 'auto';
-					img.style.width = '450px';
-					img.style.maxWidth = '75%';
-					break;
+			// 	case 2:
+			// 		img.style.left = '50%';
+			// 		img.style.transform = 'translateX(-50%)';
+			// 		img.style.height = 'auto';
+			// 		img.style.width = '450px';
+			// 		img.style.maxWidth = '75%';
+			// 		break;
 
-				case 3:
-					// TODO: extend cutin system
-					// break;
+			// 	case 3:
+			// 		// TODO: extend cutin system
+			// 		// break;
 
-				case 4:
-					img.style.top        = '50%';
-					img.style.left       = '50%';
-					img.style.marginLeft = '-' + Math.floor(img.width / 2)  + 'px';
-					img.style.marginTop  = '-' + Math.floor(img.height / 2) + 'px';
-					break;
-			}
+			// 	case 4:
+			// 		img.style.top        = '50%';
+			// 		img.style.left       = '50%';
+			// 		img.style.marginLeft = '-' + Math.floor(img.width / 2)  + 'px';
+			// 		img.style.marginTop  = '-' + Math.floor(img.height / 2) + 'px';
+			// 		break;
+			// }
 
-			document.body.appendChild(img);
+			_target.append(img);
 		});
 	}
 

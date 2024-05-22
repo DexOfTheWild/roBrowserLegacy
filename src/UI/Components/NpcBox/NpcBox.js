@@ -22,6 +22,7 @@ define(function(require)
 	var UIComponent = require('UI/UIComponent');
 	var htmlText    = require('text!./NpcBox.html');
 	var cssText     = require('text!./NpcBox.css');
+	var Typer				= require('Utils/Typer');
 
 
 	/**
@@ -63,6 +64,8 @@ define(function(require)
 			top: Math.max(100, Renderer.height/2 - 200),
 			left: Math.max( Renderer.width/3, 20)
 		});
+		
+		this.typer = new Typer(this.ui.find('#CurrentNpcText')[0], { typeSpeed: 40, audioSrc: '/static/sfx/typing.mp3' });
 
 		// Bind mouse
 		this.ui.find('.next').click( NpcBox.next.bind(this) );
@@ -84,16 +87,12 @@ define(function(require)
 	{
 		this.ui.find('.next').hide();
 		this.ui.find('.close').hide();
-		this.ui.find('.content').text('');
+		this.ui.find('.content').hide();
+		this.typer.reset();
+		this.ui.find('.portrait').children().remove();
 
 		_needCleanUp = false;
 		_ownerID     = 0;
-
-		// Cutin system
-		var cutin = document.getElementById('cutin');
-		if (cutin) {
-			document.body.removeChild( cutin );
-		}
 	};
 
 
@@ -145,25 +144,22 @@ define(function(require)
 		_ownerID    = gid;
 
 
-		let container = '<span/>';
+		let container = this.ui.find('#CurrentNpcText');
 		
-		if (_textCount === 0 && text.startsWith('[') && text.endsWith(']')) {
-			if (content.find('#NpcName').length === 0) {
-				text = text.substring(1, text.length - 1);
-				_npcName = text;
-				container = '<h1 id="NpcName" />';
-			} else {
-				return;
-			}
+		// If any message comes in with the format [text], it will be treated as the NPC's name
+		if (text.startsWith('[') && text.endsWith(']')) {
+			text = text.substring(1, text.length - 1);
+			_npcName = text;
+			container = this.ui.find('#NpcName');
+			return jQuery(container).text(text);
 		}
 		
 		if (_needCleanUp) {
+			jQuery(container).text('');
 			_needCleanUp = false;
-			_textCount = 0;
 		}
-		
-		content.append( jQuery(container).text(text) );
-		_textCount++;
+
+		this.typer.start(text);
 	};
 
 
@@ -197,10 +193,7 @@ define(function(require)
 	NpcBox.next = function Next()
 	{
 		_needCleanUp = true;
-		_textCount = 0;
-		if (this.ui.find('.content').text() !== '') {
-			_existingText.push(this.ui.find('.content').text());
-		}
+		this.typer.reset();
 		this.ui.find('.next').hide();
 		this.onNextPressed( _ownerID );
 	};
@@ -212,15 +205,14 @@ define(function(require)
 	NpcBox.close = function Close()
 	{
 		_needCleanUp = true;
-		_textCount = 0;
 		this.ui.find('.close').hide();
+		this.typer.reset();
 		this.onClosePressed( _ownerID );
 	};
 	
 	NpcBox.resetMessage = function ResetMessage() {
-		_textCount = 0;
 		_existingText = [];
-		this.ui.find('.content').children('span').remove();
+		this.ui.find('.content').children('span').text('');
 		return this;
 	}
 	
