@@ -445,6 +445,94 @@ define(function(require)
         );
 	}
 
+	/* Load Ragnarok Lua table to json object
+	* A lot of ragnarok lua tables are splited in 2 files ( 1 - ID table, 2 - Table of values )
+	* @param {Array} list of files to be load (2)
+	* @param {function} callback to run once the file is loaded
+	* @param {function} onEnd to run once the file is loaded
+	*
+	* @author alisonrag
+	*/
+	function loadLuaTable(file_list, table_name, callback, onEnd) {
+		let id_filename = file_list[0];
+		let value_table_filetaname = file_list[1];
+
+		console.log('Loading file "'+ id_filename +'"...');
+		Client.loadFile( id_filename,
+            async function (data) {
+				try {
+					// check if is ArrayBuffer or String
+					if(data instanceof ArrayBuffer) {
+						data = new TextDecoder().decode(data);
+					}
+					// load data into lua vm
+					fengari.load(data)();
+					loadValueTable();
+				} catch( hException ) {
+					onEnd.call();
+					console.error( `(${id_filename}) error: `, hException );
+				}
+            }
+        );
+
+		function loadValueTable() {
+			console.log('Loading file "'+ value_table_filetaname +'"...');
+			Client.loadFile( value_table_filetaname,
+				async function (data) {
+					try {
+						// check if is ArrayBuffer or String
+						if(data instanceof ArrayBuffer) {
+							data = new TextDecoder('iso-8859-1').decode(data);
+						}
+						fengari.load(data)();
+						parseTable();
+					} catch( hException ) {
+						onEnd.call();
+						console.error( `(${value_table_filetaname}) error: `, hException );
+					}
+				},
+			);
+		}
+
+		function parseTable() {
+			// Get the global table
+			fengari.lua.lua_getglobal(fengari.L, table_name);
+
+			// Check if it's a table
+			if (!fengari.lua.lua_istable(fengari.L, -1)) {
+				console.log('[parseTable] ' + table_name + ' is not a table');
+				onEnd.call();
+				return;
+			}
+
+			// Push nil key to start iteration
+			fengari.lua.lua_pushnil(fengari.L);
+
+			// declare the table array
+			let table = new Array();
+
+			// iterate over table
+			while (fengari.lua.lua_next(fengari.L, -2)) {
+				// get key (achievementId)
+				let id = fengari.lua.lua_tointeger(fengari.L, -2);
+				let name = fengari.lua.lua_tojsstring(fengari.L, -1);
+				table[id] = name;
+
+				// Pop the value and move to the next key
+				fengari.lua.lua_pop(fengari.L, 1);
+			}
+
+			// pop table
+			fengari.lua.lua_pop(fengari.L, 1);
+
+			// clean lua stack
+			fengari.lua.lua_settop(fengari.L, 0);
+
+			callback.call(null, table);
+			onEnd.call();
+		}
+	}
+
 	/**
 	 * Fog entry parser
 	 *
@@ -485,47 +573,100 @@ define(function(require)
     }
 
 	/**
+     * Actor Type checks
+     *
+     * @param {number} jobid
+     */
+	function isNPC(jobid) {
+		return (jobid >= 45 && jobid < 1000) || (jobid >= 10001 && jobid < 19999);
+	}
+
+	function isMercenary(jobid) {
+		return (jobid >= 6017 && jobid <= 6046);
+	}
+
+	function isHomunculus(jobid) {
+		return (jobid >= 6001 && jobid <= 6016) || (jobid >= 6048 && jobid <= 6052);
+	}
+
+	function isMonster(jobid) {
+		return (jobid >= 1001 && jobid <= 3999) || jobid >= 20000;
+	}
+
+	function isPlayer(jobid) {
+		return jobid < 45 || (jobid >= 4001 && jobid <= 4317) || jobid == 4294967294;
+	}
+
+	function isDoram(jobid) {
+		return (jobid >= 4217 && jobid <= 4220) || jobid === 4308 || jobid === 4315;
+	}
+
+	function isBaby(jobid) {
+		if ((jobid >= 4023 && jobid <= 4045) || (jobid >= 4096 && jobid <= 4112) ||
+				(jobid >= 4158 && jobid <= 4182) || jobid == 4191 || jobid == 4193 ||
+				jobid == 4195 || jobid == 4196 || (jobid >= 4205 && jobid <= 4210) ||
+				(jobid >= 4220 && jobid <= 4238) || jobid == 4241 || jobid == 4242 ||
+				jobid == 4244 || jobid == 4247 || jobid == 4248)
+		{
+			return true;
+		}
+		return false;
+	}
+
+	function isMadogear(jobid) {
+		return jobid == 4086 || jobid == 4087 || jobid == 4112 || jobid == 4279;
+	}
+
+	/**
 	 * @return {string} path to body sprite/action
 	 * @param {number} id entity
+	 * @param {boolean} alternative sprite
 	 * @param {boolean} sex
 	 * @return {string}
 	 */
-	DB.getBodyPath = function getBodyPath( id, sex )
+	DB.getBodyPath = function getBodyPath( id, sex, alternative )
 	{
-		// PC
-		if (id < 45) {
-			return 'data/sprite/\xc0\xce\xb0\xa3\xc1\xb7/\xb8\xf6\xc5\xeb/' + SexTable[sex] + '/' + (ClassTable[id] || ClassTable[0]) + '_' + SexTable[sex];
-		}
-
 		// TODO: Warp STR file
 		if (id === 45) {
 			return null;
 		}
 
 		// Not visible sprite
-		if (id === 111 || id === 139) {
+		if (id === 111 || id === 139 || id == 2337) {
 			return null;
 		}
 
-		// NPC
-		if (id < 1000) {
-			return 'data/sprite/npc/' + ( MonsterTable[id] || MonsterTable[46] ).toLowerCase();
-		}
-
-		// Monsters
-		if (id < 4000) {
-			return 'data/sprite/\xb8\xf3\xbd\xba\xc5\xcd/' + ( MonsterTable[id] || MonsterTable[1001] ).toLowerCase();
-		}
-
 		// PC
-		if (id < 6000) {
-			if (id === 4218 || id === 4220) {
+		if(isPlayer(id)) {
+			// DORAM
+			if(isDoram(id)) {
 				return 'data/sprite/\xb5\xb5\xb6\xf7\xc1\xb7/\xb8\xf6\xc5\xeb/' + SexTable[sex] + '/' + (ClassTable[id] || ClassTable[0]) + '_' + SexTable[sex];
 			}
 
-			return 'data/sprite/\xc0\xce\xb0\xa3\xc1\xb7/\xb8\xf6\xc5\xeb/' + SexTable[sex] + '/' + ( ClassTable[id] || ClassTable[0] ) + '_' + SexTable[sex];
+			// TODO: check for alternative 3rd and MADO alternative sprites
+			return 'data/sprite/\xc0\xce\xb0\xa3\xc1\xb7/\xb8\xf6\xc5\xeb/' + SexTable[sex] + '/' + (ClassTable[id] || ClassTable[0]) + '_' + SexTable[sex];
 		}
 
+		// NPC
+		if(isNPC(id)) {
+			return 'data/sprite/npc/' + ( MonsterTable[id] || MonsterTable[46] ).toLowerCase();
+		}
+
+		// MERC
+		if(isMercenary(id)) {
+			// archer - female path | lancer and swordman - male path
+			// mercenary entry on monster table have sex path included
+			return 'data/sprite/\xc0\xce\xb0\xa3\xc1\xb7/\xb8\xf6\xc5\xeb/' + MonsterTable[id];
+		}
+
+		// HOMUN
+		if(isHomunculus(id)) {
+			return 'data/sprite/homun/' + ( MonsterTable[id] || MonsterTable[1002] ).toLowerCase();
+		}
+
+		//
+		// OTHER ACTORS
+		//
 		if(id == '11_FALCON' || id == '4034_FALCON') { // 2nd
 			return 'data/sprite/\xc0\xcc\xc6\xd1\xc6\xae/\xb8\xc5';
 		}
@@ -543,10 +684,8 @@ define(function(require)
 		}
 
 
-		// Homunculus
-		return 'data/sprite/homun/' + ( MonsterTable[id] || MonsterTable[1002] ).toLowerCase();
-
-		// TODO: add support for mercenary
+		// MONSTER
+		return 'data/sprite/\xb8\xf3\xbd\xba\xc5\xcd/' + ( MonsterTable[id] || MonsterTable[1001] ).toLowerCase();
 	};
 
 
@@ -585,16 +724,17 @@ define(function(require)
 	 */
 	DB.getHeadPath = function getHeadPath( id, job, sex, orcish )
 	{
+		// ORC HEAD
 		if(orcish){
 			return 'data/sprite/\xc0\xcc\xc6\xd1\xc6\xae/orcface';
-		} else {
-			if (job === 4218 || job === 4220) {
-				return 'data/sprite/\xb5\xb5\xb6\xf7\xc1\xb7/\xb8\xd3\xb8\xae\xc5\xeb/' + SexTable[sex] + '/' + (HairIndexTable[sex + 2][id] || id) + '_' + SexTable[sex];
-			}
-
-			return 'data/sprite/\xc0\xce\xb0\xa3\xc1\xb7/\xb8\xd3\xb8\xae\xc5\xeb/' + SexTable[sex] + '/' + (HairIndexTable[sex][id] || id)+ '_' + SexTable[sex];
 		}
 
+		// DORAM
+		if(isDoram(job)) {
+			return 'data/sprite/\xb5\xb5\xb6\xf7\xc1\xb7/\xb8\xd3\xb8\xae\xc5\xeb/' + SexTable[sex] + '/' + (HairIndexTable[sex + 2][id] || id) + '_' + SexTable[sex];
+		}
+
+		return 'data/sprite/\xc0\xce\xb0\xa3\xc1\xb7/\xb8\xd3\xb8\xae\xc5\xeb/' + SexTable[sex] + '/' + (HairIndexTable[sex][id] || id)+ '_' + SexTable[sex];
 	};
 
 
