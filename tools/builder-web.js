@@ -22,8 +22,7 @@ const platform = "Web";
         'E': { path: '/EffectViewer.js', action: () => compile("EffectViewer", args['m']) },
         'T': { path: '/ThreadEventHandler.js', action: () => compile("ThreadEventHandler", args['m']) },
         'H': { path: '/index.html', action: createHTML },
-        'A': { path: '/AI', action: () => copyFolder('./AI', `${basePath}/AI`) },
-        'Y': { path: '/style.css', action: () => copyFolder('./style.css', `${basePath}/style.css`) }
+        'A': { path: '/AI', action: () => copyFolder('./AI', `${basePath}/AI`) }
     };
 
     // Ensure base directories exist
@@ -155,25 +154,32 @@ function createHTML(){
         <html>
             <head>
                 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-                <title>roBrowser [${package.version} - ${buildDate}]</title>
+                <title>dexRO</title>
+                <script>
+                    document.write('<script src="http://'
+                        + location.host.split(':')[0]
+                        + ':35729/livereload.js"></'
+                        + 'script>')
+                </script>
+                <link rel="stylesheet" type="text/css" href="/styles/index.css">
             </head>
             <body>
                 <script>
                     window.addEventListener("load", (event) => {
                         window.ROConfig = {
                             development: false, // don't need to compile javascript files in chrome app since it's already a package.
-                            remoteClient:  "http://roclient.localhost/",
+                            remoteClient:  "http://143.198.139.212/client",
                             servers: [
                                 {
                                     display: 'Localhost Server',
                                     desc: "roBrowser's demo server",
-                                    address: '127.0.0.1',
+                                    address: '164.92.103.39',
                                     port: 6900,
                                     version: 55,
                                     langtype: 5,
-                                    packetver: 20180704,
+                                    packetver: 20131223,
                                     forceUseAddress: false,
-                                    socketProxy: "ws://127.0.0.1:5999/",
+                                    socketProxy: "ws://164.92.103.39:5999/",
                                     packetKeys: false
                                 },
                             ],
@@ -181,13 +187,16 @@ function createHTML(){
                             skipServerList:  true,
                             skipIntro:       true,
                             clientVersionMode: 'PacketVer',
-                            plugins: {},
+                            plugins: {
+                                KeyToMove: '/plugins/KeyToMove/KeyToMove.js'
+                            },
 							clientHash: null,
 							enableCashShop: false,
 							enableBank: false,
 							enableMapName: false,
 							enableCheckAttendance: false,
-							CameraMaxZoomOut: 5,
+							CameraMaxZoomOut: 3,
+                            loadLua: true
                         };
 
                         script = document.createElement('script');
@@ -196,6 +205,7 @@ function createHTML(){
                         document.getElementsByTagName('body')[0].appendChild(script);
                     });
                 </script>
+                <div id="DialogueBox"></div>
             </body>
         </html>
     `;
