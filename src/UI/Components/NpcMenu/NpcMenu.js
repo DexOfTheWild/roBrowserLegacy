@@ -27,7 +27,8 @@ define(function(require)
 	/**
 	 * Create NPC Menu component
 	 */
-	var NpcMenu = new UIComponent( 'NpcMenu', htmlText, cssText );
+	const htmlTarget = '#DialogueBox';
+	var NpcMenu = new UIComponent( 'NpcMenu', htmlText, cssText, { htmlTarget } );
 
 
 	/**

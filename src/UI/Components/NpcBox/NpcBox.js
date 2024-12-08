@@ -27,7 +27,7 @@ define(function(require)
 	/**
 	 * Create NpcBox component
 	 */
-	var NpcBox = new UIComponent( 'NpcBox', htmlText, cssText );
+	var NpcBox = new UIComponent( 'NpcBox', htmlText, cssText, { htmlTarget: '#DialogueBox'} );
 
 
 
