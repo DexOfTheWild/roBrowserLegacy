@@ -1,0 +1,168 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+
+button,
+input[type="button"],
+input[type="reset"],
+input[type="submit"] {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+#DialogueBox:has(> *) {
+  $parchment-color: darken(#dad1bf, 15);
+  font-family: "Plus Jakarta Sans", sans-serif;
+  box-shadow: 0 0 4px 4px rgba(0, 0, 0, 0.25);
+  background: linear-gradient(rgba($parchment-color, 0.5), rgba($parchment-color, 0.5)), url('/static/img/dialogue-bg.png');
+  font-size: 20px;
+  color: #4b2e14;
+  // text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 45%;
+  height: auto;
+  min-height: 176px;
+  border-radius: 5px;
+  line-height: 18px;
+  letter-spacing: 0px;
+}
+
+#NpcBox {
+  top: auto!important;
+  left: auto !important;
+  width: 100% !important;
+  height: auto !important;
+  position: relative;
+  // background: rgba(0,0,0,0.25) !important;
+  background: none !important;
+  padding: 0;
+  // backdrop-filter: blur(2px);
+  min-width: 200px;
+  flex-grow: 2;
+  order: 1;
+
+  .border {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    border: none !important;
+    width: auto !important;
+    height: auto !important;
+    border-radius: 5px;
+    padding: 8px;
+    flex-grow: 1;
+    // margin-bottom: 2rem;
+    
+    .portrait {
+      width: 150px;
+      height: 175px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      order: 1;
+      overflow: hidden;
+      img {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+      }
+    }
+  }
+  
+  .content {
+    display: flex !important;
+    flex-direction: column;
+    white-space: pre-wrap;
+    width: 100% !important;
+    height: 100% !important;
+    background: none !important;
+    overflow-y: auto;
+    padding: 0 !important;
+    order: 2;
+    
+    span {
+      margin-right: 4px;
+      line-height: 1.25;
+      
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+    
+    h1 {
+      font-size: 24px;
+      font-weight: 600;
+      line-height: 1.5;
+      border-bottom: 1px solid #4b2e14;
+      margin: 0 0 12px 0;
+      width: 100%;
+    }
+  }
+  
+  .btn {
+    border: 0;
+    background-repeat: no-repeat;
+    background-color: transparent;
+    display: none;
+  }
+  
+  .close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+  }
+  
+  .next {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+  }
+}
+
+#NpcMenu {
+  flex-grow: 1;
+  order: 2;
+  // backdrop-filter: blur(2px);
+  // background: rgba(0,0,0,0.25) !important;
+  background: none !important;
+  
+  hr {
+    
+  }
+  
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    overflow: hidden;
+    align-items: left;
+    justify-content: center;
+    height: auto;
+    padding: 0 0.5rem;
+    
+    & > button {
+      padding: 0.5rem;
+      border: 2px solid rgba(0, 0, 0, 0);
+      
+      &:hover {
+        border: 2px solid #4b2e14;
+      }
+    }
+  }
+}
