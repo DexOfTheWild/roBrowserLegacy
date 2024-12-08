@@ -33,9 +33,11 @@ define(function( require )
 	 * @param {string} htmlText content
 	 * @param {string} cssText content
 	 */
-	function UIComponent( name, htmlText, cssText )
+	function UIComponent( name, htmlText, cssText, options)
 	{
 		this.name      = name;
+		this._htmlTarget = options?.htmlTarget || 'body';
+		this._classes = options?.classes || '';
 		this._htmlText = htmlText || null;
 		this._cssText  = cssText  || null;
 		this.magnet = {
@@ -111,11 +113,12 @@ define(function( require )
 			if (_style.text().indexOf('\n\n/** ' + this.name + ' **/\n') === -1) {
 				_style.append('\n\n/** ' + this.name + ' **/\n' + this._cssText);
 			}
-			jQuery('body').append(this.ui);
+			jQuery(this._htmlTarget).append(this.ui);
 		}
 
 		// Prepare html
 		if (this._htmlText) {
+			this.ui.addClass(this._classes);
 			this.ui.each( this.parseHTML ).find('*').each( this.parseHTML );
 		}
 
@@ -221,7 +224,7 @@ define(function( require )
 	/**
 	* Add the component to HTML
 	*
-	* @param {string|jQueryElement} [target] - Target element to append the UI to. If not provided, appends to body.
+	* @param {string|jQueryElement} [target] - Target element to append the UI to. If not provided, appends to this._htmlTarget.
 	*/
 	UIComponent.prototype.append = function append(target)
 	{
@@ -249,7 +252,7 @@ define(function( require )
 				return;
 			}
 		} else {
-			$target = jQuery('body');
+			$target = jQuery(this._htmlTarget);
 		}
 	
 		// Append UI content to the target element
