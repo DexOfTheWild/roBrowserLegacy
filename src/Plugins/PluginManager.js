@@ -65,11 +65,11 @@ define(function( require )
 
 		for (const [pluginName, value] of Object.entries(this.list)) {
 			if (typeof value === 'string' || value instanceof String){ // Only Path is provided as string
-				paths.push('./' + value);
+				paths.push('/plugins/' + value);
 				params.push(null);
 			} else if (typeof value === 'object' && value !== null) { // Path and parameters are provided as well
 				if(value.path){
-					paths.push('./' + value.path);
+					paths.push('/plugins/' + value.path);
 					
 					if(value.pars){
 						params.push(value.pars);
