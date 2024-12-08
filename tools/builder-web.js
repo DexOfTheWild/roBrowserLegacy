@@ -156,12 +156,6 @@ function createHTML(){
             <head>
                 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
                 <title>dexRO</title>
-                <script>
-                    document.write('<script src="http://'
-                        + location.host.split(':')[0]
-                        + ':35729/livereload.js"></'
-                        + 'script>')
-                </script>
                 <link rel="stylesheet" type="text/css" href="/styles/index.css">
             </head>
             <body>
@@ -189,7 +183,9 @@ function createHTML(){
                             skipIntro:       true,
                             clientVersionMode: 'PacketVer',
                             plugins: {
-                                KeyToMove: '/plugins/KeyToMove/KeyToMove.js'
+                                EnhancedDialogue: { 
+                                    path: 'EnhancedDialogue/index.js'
+                                }
                             },
 							clientHash: null,
 							enableCashShop: false,
