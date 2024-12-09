@@ -22,7 +22,7 @@ const platform = "Web";
         'E': { path: '/EffectViewer.js', action: () => compile("EffectViewer", args['m']) },
         'T': { path: '/ThreadEventHandler.js', action: () => compile("ThreadEventHandler", args['m']) },
         'H': { path: '/index.html', action: createHTML },
-        'A': { path: '/AI', action: () => copyFolder('./AI', `${basePath}/AI`) }
+        // 'A': { path: '/AI', action: () => copyFolder('./AI', `${basePath}/AI`) }
     };
 
     // Ensure base directories exist
@@ -182,7 +182,7 @@ function createHTML(){
                             skipIntro:       true,
                             clientVersionMode: 'PacketVer',
                             plugins: {
-                                EnhancedDialogue: { 
+                                EnhancedDialogue: {
                                     path: 'EnhancedDialogue/index.js'
                                 }
                             },

@@ -81,7 +81,17 @@ define(function(){
         resolve();
       }
     }
-  
+
+    /**
+     * Finish typing and set the text
+     */
+    finish() {
+      if (this.isTyping) {
+        this.interrupt();
+        this.targetNode.textContent = this.text;
+      }
+    }
+
     onCompletion() {
       if (!this.isTyping) {
         return Promise.resolve();
