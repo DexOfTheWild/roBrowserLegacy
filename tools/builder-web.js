@@ -183,7 +183,7 @@ function createHTML(){
                             skipIntro:       true,
                             clientVersionMode: 'PacketVer',
                             plugins: {
-                                EnhancedDialogue: { 
+                                EnhancedDialogue: {
                                     path: 'EnhancedDialogue/index.js'
                                 }
                             },
