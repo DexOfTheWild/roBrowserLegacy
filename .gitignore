@@ -1,0 +1,26 @@
+/AI/*
+/applications/settings.js
+/client/BGM/*
+/client/data/*
+/client/resources/*
+/client/System/*
+/dist/
+/node_modules/
+/index.html
+/package-lock.json
+/GrannyModelViewer.js
+/GrfViewer.js
+/MapViewer.js
+/ModelViewer.js
+/Online.js
+/StrViewer.js
+/ThreadEventHandler.js
+
+# IDE files
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
