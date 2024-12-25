@@ -1764,6 +1764,9 @@ define(function( require )
 				
 				break;
 
+			case StatusConst.SKE:
+				break;
+
 			case StatusConst.EXPLOSIONSPIRITS: //state: 1 ON  0 OFF
             case StatusConst.MARIONETTE_MASTER:
             case StatusConst.MARIONETTE:
@@ -1775,8 +1778,7 @@ define(function( require )
             case StatusConst.ENERGYCOAT:
             case StatusConst.OVERTHRUST:
             case StatusConst.OVERTHRUSTMAX:
-            case StatusConst.SWOO:
-            case StatusConst.SKE:
+			case StatusConst.SWOO:
             case StatusConst.NJ_BUNSINJYUTSU:
             case StatusConst.STEELBODY:
             case StatusConst.AURABLADE:
