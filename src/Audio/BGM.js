@@ -222,22 +222,156 @@ function( require,         jQuery,        Client,   Preferences )
 
 
 	/**
-	 * Change the volume of the BGM
+	 * Change the volume of the BGM with optional fade effect
 	 *
-	 * @param {number} volume
+	 * @param {number} volume - Target volume level (0-1)
+	 * @param {number} [fadeOutMs] - Time in milliseconds to fade out
+	 * @param {number} [fadeInMs] - Time in milliseconds to fade in
+	 * @returns {Promise} Resolves when volume change is complete
 	 */
-	BGM.setVolume = function setVolume( volume )
+	BGM.setVolume = function setVolume(volume, fadeOutMs = 0, fadeInMs = 0, save = true)
 	{
-		BGM.volume  = volume;
-		Preferences.BGM.volume = volume;
-		Preferences.save();
+		// Ensure volume is a valid number between 0 and 1
+		volume = Math.max(0, Math.min(1, Number(volume) || 0));
+		fadeOutMs = Math.max(0, Number(fadeOutMs) || 0);
+		fadeInMs = Math.max(0, Number(fadeInMs) || 0);
 
-		if (BGM.useHTML5) {
-			BGM.audio.volume = volume;
-		}
-		else if (BGM.flash.SetVariable) {
-			BGM.flash.SetVariable('method:setVolume', volume*100 );
-		}
+		console.log('[BGM] setVolume called:', {
+			targetVolume: volume,
+			fadeOutMs,
+			fadeInMs,
+			useHTML5: BGM.useHTML5
+		});
+
+		return new Promise((resolve) => {
+			if (!fadeOutMs && !fadeInMs) {
+				// Original immediate volume change
+				BGM.volume = volume;
+				if (Preferences && save) {
+					Preferences.BGM.volume = volume;
+					Preferences.save();
+				}
+
+				if (BGM.useHTML5 && BGM.audio) {
+					console.log('[BGM] Immediate volume change (HTML5):', volume);
+					BGM.audio.volume = volume;
+				}
+				else if (BGM.flash.SetVariable) {
+					console.log('[BGM] Immediate volume change (Flash):', volume * 100);
+					BGM.flash.SetVariable('method:setVolume', volume * 100);
+				}
+				resolve();
+				return;
+			}
+
+			// Fade implementation
+			const startVolume = Number(BGM.volume) || 0;
+			const startTime = Date.now();
+			let currentPhase = fadeOutMs > 0 ? 'fadeOut' : 'fadeIn';
+
+			console.log('[BGM] Starting fade sequence:', {
+				startVolume,
+				targetVolume: volume,
+				fadeOutDuration: fadeOutMs + 'ms',
+				fadeInDuration: fadeInMs + 'ms',
+				initialPhase: currentPhase
+			});
+
+			const fadeInterval = setInterval(() => {
+				const elapsed = Date.now() - startTime;
+				let currentVolume;
+
+				if (currentPhase === 'fadeOut') {
+					const progress = Math.min(elapsed / fadeOutMs, 1);
+					currentVolume = startVolume - (startVolume * progress);
+
+					if (progress >= 1) {
+						if (fadeInMs > 0) {
+							currentPhase = 'fadeIn';
+						} else {
+							console.log('[BGM] Fade out complete');
+							clearInterval(fadeInterval);
+							resolve();
+							return;
+						}
+					}
+				}
+				else { // fadeIn phase
+					const fadeInElapsed = elapsed - fadeOutMs;
+					const progress = Math.min(fadeInElapsed / fadeInMs, 1);
+					currentVolume = volume * progress;
+
+					if (progress >= 1) {
+						console.log('[BGM] Fade sequence complete:', {
+							finalVolume: currentVolume,
+							totalElapsed: elapsed + 'ms'
+						});
+						clearInterval(fadeInterval);
+						resolve();
+						return;
+					}
+				}
+
+				// Ensure volume is valid before setting
+				currentVolume = Math.max(0, Math.min(1, Number(currentVolume) || 0));
+
+				if (BGM.useHTML5 && BGM.audio) {
+					BGM.audio.volume = currentVolume;
+					// console.log(`[BGM] ${currentPhase} progress (HTML5):`, {
+					// 	currentVolume: currentVolume.toFixed(3)
+					// });
+				}
+				else if (BGM.flash.SetVariable) {
+					BGM.flash.SetVariable('method:setVolume', currentVolume * 100);
+					// console.log(`[BGM] ${currentPhase} progress (Flash):`, {
+					// 	currentVolume: (currentVolume * 100).toFixed(1)
+					// });
+				}
+
+				BGM.volume = currentVolume;
+			}, 50);
+		});
+	};
+
+
+	/**
+	 * Restart the current BGM track from the beginning
+	 * @returns {Promise} Resolves when the track has restarted
+	 */
+	BGM.restart = function restart() {
+		return new Promise((resolve) => {
+			console.log('[BGM] Restarting track:', BGM.filename);
+
+			if (BGM.useHTML5 && BGM.audio) {
+				BGM.audio.currentTime = 0;
+
+				// Some browsers need a brief pause before playing again
+				BGM.audio.pause();
+				setTimeout(() => {
+					BGM.audio.play()
+						.then(() => {
+							console.log('[BGM] Track restarted successfully (HTML5)');
+							resolve();
+						})
+						.catch((error) => {
+							console.error('[BGM] Failed to restart track:', error);
+							resolve();
+						});
+				}, 50);
+			}
+			else if (BGM.flash.SetVariable) {
+				// For Flash player, we need to stop and replay the current file
+				BGM.flash.SetVariable('method:stop', null);
+				BGM.flash.SetVariable('method:setUrl', BGM.flash.GetVariable('url'));
+				BGM.flash.SetVariable('method:play', null);
+				console.log('[BGM] Track restarted (Flash)');
+				resolve();
+			}
+			else {
+				console.warn('[BGM] Unable to restart - no valid audio player');
+				resolve();
+			}
+		});
 	};
 
 

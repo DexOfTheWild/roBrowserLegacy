@@ -42,6 +42,8 @@ define(function( require )
 	var MagicTarget       = require('Renderer/Effects/MagicTarget');
 	var LockOnTarget      = require('Renderer/Effects/LockOnTarget');
 	var MagicRing         = require('Renderer/Effects/MagicRing');
+	var Preferences = require('Preferences/Audio');
+	var BGM = require('Audio/BGM');
 
 	var BasicInfo         = require('UI/Components/BasicInfo/BasicInfo');
 	var ChatBox           = require('UI/Components/ChatBox/ChatBox');
@@ -1697,6 +1699,9 @@ define(function( require )
     }
 
 
+	let oldFilename = BGM.filename;
+	let oldVolume = Preferences.BGM.volume;
+
 	/**
 	 * Update Player status
 	 *
@@ -1765,6 +1770,34 @@ define(function( require )
 				break;
 
 			case StatusConst.SKE:
+				if (pkt.state === 1) {
+
+					const overlay = document.querySelector('.main-canvas-overlay');
+					overlay.classList.add('night', 'transitioning');
+					overlay.classList.remove('day');
+
+					overlay.addEventListener('animationend', function () {
+						overlay.classList.remove('transitioning');
+						overlay.removeEventListener('animationend', this);
+					});
+
+					// TODO ALEX: This whole sound thing with setVolume and the weird params is a mess, fix it
+					oldFilename = BGM.filename;
+					BGM.setVolume(0, 10000, 0, false).then(() => {
+						BGM.audio.pause();
+						BGM.setVolume(Preferences.BGM.volume, 0, 0, false);
+
+						BGM.play('night_ambience.mp3');
+						Sound.play("OOT_6pmWolf.wav", 1);
+					});
+				} else {
+					const overlay = document.querySelector('.main-canvas-overlay');
+					overlay.classList.remove('night');
+					overlay.classList.add('day', 'transitioning');
+					BGM.stop();
+					BGM.play(oldFilename);
+					BGM.setVolume(Preferences.BGM.volume, 0, 0, false);
+				}
 				break;
 
 			case StatusConst.EXPLOSIONSPIRITS: //state: 1 ON  0 OFF

@@ -205,7 +205,7 @@ function createHTML(){
                     });
                 </script>
                 <div id="MainCanvas">
-                    <div id="MainCanvasOverlay"></div>
+                    <div class="main-canvas-overlay"></div>
                 </div>
                 <div id="DialogueBox"></div>
             </body>

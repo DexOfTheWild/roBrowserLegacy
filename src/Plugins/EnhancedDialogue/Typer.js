@@ -10,36 +10,47 @@ define(function(){
       this.isTyping = false;
       this.currentTimeout = null;
       this.completionListeners = [];
-      this.sentenceDelimiters = ['.', ',', '!', '?', ';', ':'];
+      this.sentenceDelimiters = new Set(['.', ',', '!', '?', ';', ':']);
   
       // Prepare multiple audio instances if provided
       if (this.audioSrc) {
         this.audioPlayers = Array.from({ length: this.audioInstances }, () => new Audio(this.audioSrc));
         this.currentAudioIndex = 0;
       }
+
+      // Create text node once for better performance
+      this.textNode = document.createTextNode('');
+      this.targetNode.appendChild(this.textNode);
     }
   
     typeChar() {
       if (this.currentIndex < this.text.length) {
         const char = this.text[this.currentIndex];
-        this.targetNode.textContent += char;
+        this.textNode.nodeValue += char;
         this.currentIndex++;
   
         // Play audio if provided
         if (this.audioSrc) {
           const audio = this.audioPlayers[this.currentAudioIndex];
-          audio.currentTime = 0; // Reset the audio to the beginning
-          audio.volume = 0.35;
-          audio.play();
+          // Only reset and play audio for non-space characters
+          if (char !== ' ') {
+            audio.currentTime = 0;
+            audio.volume = 0.35;
+            audio.play().catch(() => { }); // Ignore failed playback
+          }
           this.currentAudioIndex = (this.currentAudioIndex + 1) % this.audioInstances;
         }
   
         let delay = this.typeSpeed;
-        if (this.sentenceDelimiters.includes(char)) {
-          delay *= 3; // Increase delay for sentence delimiters
+        // Use Set.has() instead of Array.includes()
+        if (this.sentenceDelimiters.has(char)) {
+          delay *= 3;
         }
   
-        this.currentTimeout = setTimeout(() => this.typeChar(), delay);
+        // Use requestAnimationFrame for better performance
+        this.currentTimeout = setTimeout(() => {
+          requestAnimationFrame(() => this.typeChar());
+        }, delay);
       } else {
         this.isTyping = false;
         this.resolveCompletionListeners();
@@ -72,7 +83,7 @@ define(function(){
   
     reset() {
       this.interrupt();
-      this.targetNode.textContent = '';
+      this.textNode.nodeValue = '';
       this.currentIndex = 0;
     }
   
@@ -89,7 +100,7 @@ define(function(){
     finish() {
       if (this.isTyping) {
         this.interrupt();
-        this.targetNode.textContent = this.text;
+        this.textNode.nodeValue = this.text;
       }
     }
 
