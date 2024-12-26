@@ -11,6 +11,7 @@ define(function(){
       this.currentTimeout = null;
       this.completionListeners = [];
       this.sentenceDelimiters = new Set(['.', ',', '!', '?', ';', ':']);
+      this.textQueue = '';
   
       // Prepare multiple audio instances if provided
       if (this.audioSrc) {
@@ -24,6 +25,7 @@ define(function(){
     }
   
     typeChar() {
+      // If there is text to type, type it
       if (this.currentIndex < this.text.length) {
         const char = this.text[this.currentIndex];
         this.textNode.nodeValue += char;
@@ -35,7 +37,7 @@ define(function(){
           // Only reset and play audio for non-space characters
           if (char !== ' ') {
             audio.currentTime = 0;
-            audio.volume = 0.35;
+            audio.volume = 0.15;
             audio.play().catch(() => { }); // Ignore failed playback
           }
           this.currentAudioIndex = (this.currentAudioIndex + 1) % this.audioInstances;
@@ -46,11 +48,16 @@ define(function(){
         if (this.sentenceDelimiters.has(char)) {
           delay *= 3;
         }
-  
         // Use requestAnimationFrame for better performance
         this.currentTimeout = setTimeout(() => {
           requestAnimationFrame(() => this.typeChar());
         }, delay);
+
+        // If the textQueue has more text added, add it to the current text
+      } else if (this.textQueue.length > 0) {
+        this.text += this.textQueue;
+        this.textQueue = '';
+        this.typeChar();
       } else {
         this.isTyping = false;
         this.resolveCompletionListeners();
@@ -78,29 +85,36 @@ define(function(){
         this.currentTimeout = null;
       }
       this.isTyping = false;
+      this.textQueue = '';
       this.resolveCompletionListeners();
     }
   
     reset() {
       this.interrupt();
-      this.textNode.nodeValue = '';
-      this.currentIndex = 0;
-    }
-  
-    resolveCompletionListeners() {
-      while (this.completionListeners.length > 0) {
-        const resolve = this.completionListeners.shift();
-        resolve();
+      // Remove old text node
+      if (this.textNode.parentNode) {
+        this.textNode.parentNode.removeChild(this.textNode);
       }
+      // Create fresh text node and append it
+      this.textNode = document.createTextNode('');
+      this.targetNode.appendChild(this.textNode);
+      this.currentIndex = 0;
     }
 
     /**
-     * Finish typing and set the text
+     * Finish typing and set the final text
      */
     finish() {
       if (this.isTyping) {
         this.interrupt();
         this.textNode.nodeValue = this.text;
+      }
+    }
+
+    resolveCompletionListeners() {
+      while (this.completionListeners.length > 0) {
+        const resolve = this.completionListeners.shift();
+        resolve();
       }
     }
 
@@ -111,6 +125,19 @@ define(function(){
       return new Promise((resolve) => {
         this.completionListeners.push(resolve);
       });
+    }
+
+    /**
+     * Queue additional text to be typed after the current text
+     * @param {string} text - The text to append
+     * @returns {Promise} Resolves when all text (including queued) is typed
+     */
+    queue(text) {
+      if (!this.isTyping) {
+        return this.start(text);
+      }
+      this.textQueue += text;
+      return this.onCompletion();
     }
   }  
     
