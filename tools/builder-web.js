@@ -186,6 +186,9 @@ function createHTML(){
                             plugins: {
                                 EnhancedDialogue: {
                                     path: 'EnhancedDialogue/index.js'
+                                },
+                                KeyToMove: {
+                                    path: 'KeyToMove/KeyToMove.js'
                                 }
                             },
 							clientHash: null,
