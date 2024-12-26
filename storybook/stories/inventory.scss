@@ -1,0 +1,318 @@
+// ==============================
+// Variables
+// ==============================
+
+// Base font size (browser default is typically 16px)
+$root-font-size: 16px;
+
+// Spacing scale (based on 4px increments)
+$spacing-xxs: 0.125rem;  // 2px
+$spacing-xs: 0.25rem;    // 4px
+$spacing-sm: 0.5rem;     // 8px
+$spacing-md: 1rem;       // 16px
+$spacing-lg: 1.5rem;     // 24px
+$spacing-xl: 2rem;       // 32px
+$spacing-2xl: 3rem;      // 48px
+
+// Base colors
+$white: white;
+$border-color: #ccc;
+$overlay-bg: rgba(0, 0, 0, 0.7);
+$overlay-grey: #aaa;
+
+// Theme colors
+$parchment-color: #eadbbe;
+$charcoal-color: #3b3a35;
+$dark-wood-color: #383c31;
+$dark-wood-color-light: #525246;
+$bg-color-brown: #8c6e53;
+
+// Theme assignments
+$bg-color: $dark-wood-color;
+$accent-color: $dark-wood-color-light;
+
+// Border radius scale
+$border-radius-sm: 0.125rem;  // 2px
+$border-radius-md: 0.1875rem; // 3px
+$border-radius-lg: 0.375rem;  // 6px
+
+// Container dimensions (converted to rem)
+$max-width: 31.25rem;    // 500px
+$max-height: 18.75rem;   // 300px
+$min-width: 6.25rem;     // 100px
+$min-height: 6.25rem;    // 100px
+$default-width: 23.4375rem; // 375px
+$default-height: 12.5rem;   // 200px
+
+// Element dimensions
+$item-size: $spacing-xl;      // 32px
+$icon-gap: $spacing-xs;       // 4px
+$titlebar-height: $spacing-lg; // 24px
+$footer-height: $spacing-lg;   // 24px
+
+// Font scale
+$font-size-xs: 0.6875rem;  // 11px
+$font-size-sm: 0.75rem;    // 12px
+$font-size-md: 1.25rem;    // 20px
+$font-family: "Plus Jakarta Sans", sans-serif;
+
+// Positioning
+$default-top: 6.25rem;    // 100px
+$default-left: 6.25rem;   // 100px
+
+// Grid settings
+$grid-padding: $spacing-sm; // 8px
+$grid-gap: $spacing-sm;     // 8px
+$grid-item-border: 0.125rem; // 2px
+
+// ==============================
+// Mixins
+// ==============================
+
+// Mixins for common patterns
+@mixin flexbox($direction: row, $justify: flex-start, $align: stretch) {
+  display: flex;
+  flex-direction: $direction;
+  justify-content: $justify;
+  align-items: $align;
+}
+
+@mixin flex-center {
+  @include flexbox(row, center, center);
+}
+
+@mixin flex-grow {
+  display: flex;
+  flex-grow: 1;
+}
+
+@mixin absolute-fill {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+@mixin background-image {
+  background-repeat: no-repeat;
+  background-color: transparent;
+}
+
+@mixin reset-button {
+  border: none;
+  background-color: transparent;
+  padding: 0;
+}
+
+#Inventory {
+  // Container styles
+  max-width: $max-width;
+  max-height: $max-height;
+  width: $default-width;
+  height: $default-height;
+  min-width: $min-width;
+  min-height: $min-height;
+  overflow: hidden;
+  
+  // Positioning and appearance
+  top: $default-top;
+  left: $default-left;
+  border-radius: $border-radius-md;
+  background: $bg-color;
+  
+  // Typography
+  font-family: $font-family;
+  font-size: $font-size-md;
+  color: $white;
+  
+  // Layout
+  display: flex;
+  flex-direction: column;
+
+  table {
+    border-spacing: 0;
+    display: inline-block;
+  }
+
+  // Title bar styles
+  .titlebar {
+    width: 100%;
+    min-height: $titlebar-height;
+    @include flexbox(row, space-between, center);
+    background-color: transparent;
+
+    .base {
+      width: $spacing-lg - $spacing-xs; // 18px
+      height: $spacing-lg - $spacing-xs; // 18px
+      vertical-align: middle;
+    }
+
+    .text {
+      white-space: nowrap;
+      line-height: 2rem;
+    }
+
+    .left, .right {
+      @include flexbox(row, center, center);
+      gap: $spacing-xs;
+      padding: 0 $spacing-xs;
+    }
+    
+    .left { margin-left: $spacing-xs; }
+    .right { margin-right: $spacing-xs; }
+  }
+
+  // Tab styles
+  .tabs {
+    @include background-image;
+
+    button {
+      width: $spacing-lg - $spacing-xs; // 20px
+      height: $spacing-lg + $spacing-xs; // 27px
+      @include reset-button;
+      display: block;
+    }
+  }
+
+  // Layout components
+  .panel { flex-grow: 2; }
+
+  .inventory-layout {
+    height: 100%;
+    @include flexbox(column);
+    flex-grow: 2;
+  }
+
+  .tabs-column {
+    height: 0;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .main-column { flex-grow: 1; }
+
+  .container {
+    @include flex-grow;
+    height: 100%;
+  }
+
+  .ff_bugfix {
+    @include flex-grow;
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .hide {
+    height: 100%;
+    width: $spacing-md; // 16px
+    position: absolute;
+    top: 0;
+    right: 0;
+    border-radius: $border-radius-lg;
+    background: rgba($white, 0.25);
+  }
+
+  .content {
+    @include flex-center;
+    flex-wrap: wrap;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+  }
+
+  // Inventory grid styles
+  .inventory-grid {
+    $item-border-radius: $spacing-xxs; // 2px
+    
+    @include flexbox(row, flex-start, flex-start);
+    flex-wrap: wrap;
+    flex-grow: 2;
+    
+    width: 100%;
+    min-height: $min-height;
+    max-height: $default-height - $titlebar-height - ($footer-height * 2);
+    max-width: $max-width - ($icon-gap * 2);
+    
+    padding: $spacing-sm;
+    gap: $spacing-sm;
+    overflow: auto;
+
+    .item {
+      display: block;
+      position: relative;
+      width: $item-size;
+      height: $item-size;
+      outline: $grid-item-border solid $accent-color;
+      border-radius: $item-border-radius;
+      
+      &:hover {
+        background-color: darken($accent-color, 7.5%);
+      }
+
+      .icon {
+        width: $item-size;
+        height: $item-size;
+        border: none;
+        @include background-image;
+        border-radius: $item-border-radius;
+      }
+
+      .amount {
+        position: relative;
+        bottom: $spacing-sm + $spacing-xs; // 9px
+        right: 0;
+        font-size: $font-size-xs;
+        text-align: right;
+      }
+    }
+  }
+
+  // Overlay styles
+  .overlay {
+    position: absolute;
+    display: none;
+    white-space: nowrap;
+    z-index: 900;
+    
+    height: $spacing-sm + $spacing-xs; // 15px
+    line-height: $spacing-sm + $spacing-xs; // 15px
+    padding: $spacing-xs;
+    border-radius: $border-radius-md;
+    
+    background: $overlay-bg;
+    color: $white;
+    text-shadow: 1px 1px black;
+
+    &.grey {
+      color: $overlay-grey;
+    }
+  }
+
+  // Footer styles
+  .footer {
+    position: relative;
+    width: 100%;
+    height: $footer-height;
+    background-repeat: repeat-x;
+    background-color: transparent;
+
+    .cnt {
+      position: absolute;
+      left: $spacing-sm + $spacing-xs; // 10px
+      bottom: $spacing-xs + $spacing-xxs; // 6px
+      font-size: $font-size-sm;
+    }
+
+    button {
+      @include reset-button;
+      @include background-image;
+      position: absolute;
+      right: 0;
+      bottom: $spacing-xxs;
+      width: $spacing-sm + $spacing-xs; // 13px
+      height: $spacing-sm + $spacing-xs; // 13px
+    }
+  }
+}
