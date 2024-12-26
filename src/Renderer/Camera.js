@@ -485,7 +485,7 @@ define(function( require )
 					Session.Entity.hideEntity = true;
 				}
 			}
-		} else if (this.enable3RDPerson &&  this.zoomFinal < (Math.abs(this.altitudeRange) * C_THIRDPERSON_TRESHOLD_ZOOM)){
+		} else if (this.enable3RDPerson) {
 			if(this.state != this.states.third_person){
 				var Renderer    = require('Renderer/Renderer');
 				this.MIN_V_ANGLE = C_MIN_V_ANGLE_3RDPERSON;
