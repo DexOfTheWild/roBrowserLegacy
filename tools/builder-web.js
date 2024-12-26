@@ -189,6 +189,9 @@ function createHTML(){
                                 },
                                 KeyToMove: {
                                     path: 'KeyToMove/KeyToMove.js'
+                                },
+                                EnhancedTargeting: {
+                                    path: 'EnhancedTargeting/index.js'
                                 }
                             },
 							clientHash: null,
