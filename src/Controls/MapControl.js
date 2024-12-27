@@ -146,8 +146,18 @@ define(function( require )
 				_rightClickPosition[0] = Mouse.screen.x;
 				_rightClickPosition[1] = Mouse.screen.y;
 
-				if (!KEYS.SHIFT && KEYS.ALT && !KEYS.CTRL) {
+				// If entity is a mob, handle targeting
+				if (entityOver === Session.Entity) {
+					if (entityFocus) {
+						entityFocus.onFocusEnd();
+					}
+					entityOver.onFocus();
+					EntityManager.setFocusEntity(entityOver);
+					return false;
+				}
 
+				// Original camera rotation logic
+				if (!KEYS.SHIFT && KEYS.ALT && !KEYS.CTRL) {
 					Cursor.setType( Cursor.ACTION.ROTATE );
 					Camera.rotate( false );
 
@@ -173,10 +183,8 @@ define(function( require )
 					}
 
 				} else {
-
 					Cursor.setType( Cursor.ACTION.ROTATE );
-					Camera.rotate( true );
-
+					Camera.rotate(true);
 				}
 				break;
 		}

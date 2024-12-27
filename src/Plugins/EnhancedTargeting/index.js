@@ -7,7 +7,7 @@ define(function (require) {
    */
   return function Init(pars) {
     // Enhance all components
-    require('./EnhancedTargeting.js');
+    require('./EnhancedTargeting.js')();
 
     return true;
   };
