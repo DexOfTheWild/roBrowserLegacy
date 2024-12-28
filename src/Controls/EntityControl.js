@@ -384,7 +384,7 @@ define(function( require )
 					if (!Camera.action.active) {
 						Cursor.setType( Cursor.ACTION.DEFAULT );
 					}
-					if(!Session.TouchTargeting && !Session.autoFollow){
+					if (!Session.TouchTargeting && !Session.autoFollow && !Session.EnhancedTargeting) {
 						break;
 					}
 				}
@@ -406,7 +406,7 @@ define(function( require )
 				});
 
 
-				if(!Session.TouchTargeting && !Session.autoFollow){
+				if (!Session.TouchTargeting && !Session.autoFollow && !Session.EnhancedTargeting) {
 					var out   = [];
 					var count = PathFinding.search(
 						main.position[0] | 0, main.position[1] | 0,

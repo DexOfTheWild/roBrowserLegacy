@@ -215,7 +215,7 @@ define(function(require)
 			return;
 		}
 		
-		if(Session.TouchTargeting){
+		if (Session.TouchTargeting || Session.EnhancedTargeting) {
 			var entityFocus = EntityManager.getFocusEntity();
 			if(entityFocus){
 				if (_flag & (SkillTargetSelection.TYPE.PLACE)) {
