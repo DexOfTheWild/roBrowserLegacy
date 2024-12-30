@@ -411,6 +411,7 @@ define(function( require )
 		render:               render,
 		intersect:            intersect,
 		setSupportPicking:    setSupportPicking,
+		getPathDistance: getPathDistance,
 	};
 
 
