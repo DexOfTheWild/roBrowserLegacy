@@ -110,7 +110,9 @@ function(      WebGL,         Texture,   Preferences )
 			float dotProduct = dot( uNormalMat * aVertexNormal, dirVector );
 			vLightWeighting  = max( dotProduct, 0.1 );
 
-			vCustomValue = sin(uTime * 0.001 + aPosition.x * 0.1) * 0.5 + 0.5;
+			float wave = sin(uTime * 0.001 + aPosition.x * 0.1);
+			wave = wave * (1.0 - max(wave, 0.0) * 0.5);
+			vCustomValue = wave * 0.5 + 0.5;
 		}
 	`;
 
