@@ -36,6 +36,16 @@ define(function()
 	Weather.sky['5@tower.rsw']     = { skyColor:[0.2, 0.0, 0.2, 1.0],    cloudColor:[1.0, 0.7, 0.7] };
 	Weather.sky['thana_boss.rsw']  = { skyColor:[0.88, 0.83, 0.76, 1.0], cloudColor:[0.37, 0.0, 0.0] };
 
+	Weather.sky['your_map.rsw'] = {
+		skyColor: [0.4, 0.6, 0.8, 1.0],
+		cloudColor: [1.0, 1.0, 1.0],
+		cloudZone: {
+			startX: 0.66,  // Start at 66% of map width
+			width: 200,
+			height: 200
+		}
+	};
+
 
 	// TODO: add others effect (snow, fireworks, etc.)
 
