@@ -14,6 +14,7 @@ define(function (require) {
   var EntityManager = require('Renderer/EntityManager');
   var Mouse = require('Controls/MouseEventHandler');
   var Entity = require('Renderer/Entity/Entity');
+  var Sound = require('Audio/SoundManager');
 
   /**
    * @returns {boolean} success
@@ -26,8 +27,6 @@ define(function (require) {
  * @returns {Object|null} The newly focused entity, or null if none found.
  */
     function focusNearestEnemy() {
-      Session.EnhancedTargeting = true;
-
       // The player's entity
       var Player = Session.Entity;
       // Whatever is currently targeted
@@ -37,8 +36,36 @@ define(function (require) {
       var closestEntity = EntityManager.getClosestEntity(Player, Entity.TYPE_MOB);
       // console.log('[EnhancedTargeting] Closest entity:', closestEntity);
 
+      // If we're already targeting the closest entity, find the next closest one
+      if (entityFocus && closestEntity && entityFocus.GID === closestEntity.GID) {
+        // Create a list of mobs sorted by distance
+        var mobList = [];
+        EntityManager.forEach(function (entity) {
+          if (entity.objecttype === Entity.TYPE_MOB &&
+            entity.action !== entity.ACTION.DIE &&
+            entity.remove_tick === 0) {
+            mobList.push(entity);
+          }
+        });
+
+        // Sort mobs by distance to player
+        mobList.sort(function (a, b) {
+          var distA = EntityManager.getPathDistance(Player, a) || Infinity;
+          var distB = EntityManager.getPathDistance(Player, b) || Infinity;
+          return distA - distB;
+        });
+
+        // Find the next mob after our current target
+        for (var i = 0; i < mobList.length; i++) {
+          if (mobList[i].GID === entityFocus.GID && i + 1 < mobList.length) {
+            closestEntity = mobList[i + 1];
+            break;
+          }
+        }
+      }
+
       if (closestEntity) {
-        // If we had a focus already, but it's a different monster, clear old focus
+        // Clear old focus if it exists and is different
         if (entityFocus && closestEntity.GID !== entityFocus.GID) {
           // console.log('[EnhancedTargeting] Clearing old focus:', entityFocus);
           if (entityFocus.onFocusEnd) {
@@ -65,39 +92,15 @@ define(function (require) {
         }
       }
 
+      if (closestEntity) {
+        Sound.play("click.wav", 1);
+      }
       // Return whichever monster became our focus (or null if none found)
       return closestEntity || null;
     }
 
-    // Handle right click
-    // jQuery(window).on('contextmenu.target', function (event) {
-    //   // Skip if not playing
-    //   if (!Session.Playing) {
-    //     return true;
-    //   }
+    Session.EnhancedTargeting = true;
 
-    //   // Get entity under mouse
-    //   var entity = EntityManager.getOverEntity();
-
-    //   // If entity exists and is a monster
-    //   if (entity && entity.objecttype === Entity.TYPE_MOB) {
-    //     console.log('[EnhancedTargeting] Targeting entity:', entity);
-    //     // Set as focus entity
-    //     if (EntityManager.getFocusEntity()) {
-    //       EntityManager.getFocusEntity().onFocusEnd();
-    //     }
-
-    //     entity.onFocus();
-    //     EntityManager.setFocusEntity(entity);
-
-    //     // Prevent default context menu
-    //     event.preventDefault();
-    //     return false;
-    //   }
-
-    //   return true;
-    // });
-    // Somewhere in your main game script or UI initialization code:
     document.addEventListener('keydown', function (event) {
       // 'Tab' is keyCode 9, but you can also check event.key === 'Tab'
       if (event.key === 'Tab') {
@@ -107,6 +110,34 @@ define(function (require) {
         // Call your function that finds/focuses the nearest monster
         focusNearestEnemy();
       }
+    });
+
+    jQuery(window).on('contextmenu.target', function (event) {
+      // Skip if not playing
+      if (!Session.Playing) {
+        return true;
+      }
+
+      // Get entity under mouse
+      var entity = EntityManager.getOverEntity();
+
+      // If entity exists and is a monster
+      if (entity && entity.objecttype === Entity.TYPE_MOB) {
+        console.log('[EnhancedTargeting] Targeting entity:', entity);
+        // Set as focus entity
+        if (EntityManager.getFocusEntity()) {
+          EntityManager.getFocusEntity().onFocusEnd();
+        }
+
+        entity.onFocus();
+        EntityManager.setFocusEntity(entity);
+
+        // Prevent default context menu
+        event.preventDefault();
+        return false;
+      }
+
+      return true;
     });
 
 

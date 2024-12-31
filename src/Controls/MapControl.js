@@ -230,8 +230,6 @@ define(function( require )
 
 			// Right Click
 			case 3:
-				Cursor.setType( Cursor.ACTION.DEFAULT );
-				Camera.rotate( false );
 
 				// Seems like it's how the official client handle the contextmenu
 				// Just check for the same position on mousedown and mouseup
@@ -242,6 +240,10 @@ define(function( require )
 						entity.onContextMenu();
 					}
 				}
+
+				Cursor.setType(Cursor.ACTION.DEFAULT);
+				Camera.rotate(false);
+
 				break;
 		}
 	}
