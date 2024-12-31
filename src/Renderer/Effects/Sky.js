@@ -21,6 +21,7 @@ define(function( require )
 	var Client         = require('Core/Client');
 	var Session        = require('Engine/SessionStorage');
 	var SpriteRenderer = require('Renderer/SpriteRenderer');
+	var Renderer = require('Renderer/Renderer');
 	var vec3           = require('Utils/gl-matrix').vec3;
 
 
@@ -55,6 +56,54 @@ define(function( require )
 
 
 	/**
+	 * @var {vec3} current sky color
+	 */
+	var _currentSkyColor = vec3.create();
+
+
+	/**
+	 * @var {vec3} target sky color
+	 */
+	var _targetSkyColor = vec3.create();
+
+
+	/**
+	 * @var {vec3} current cloud color
+	 */
+	var _currentCloudColor = vec3.create();
+
+
+	/**
+	 * @var {vec3} target cloud color
+	 */
+	var _targetCloudColor = vec3.create();
+
+
+	/**
+	 * @var {boolean} is transitioning
+	 */
+	var _isTransitioning = false;
+
+
+	/**
+	 * @var {number} transition start time
+	 */
+	var _transitionStartTime = 0;
+
+
+	/**
+	 * @var {number} transition duration
+	 */
+	var _transitionDuration = 2000000; // 2 seconds, match your CSS transition
+
+
+	/**
+	 * @var {string} current map name
+	 */
+	var _currentMapName = '';
+
+
+	/**
 	 * Prepare cloud data
 	 *
 	 * @param {object} gl context
@@ -64,6 +113,9 @@ define(function( require )
 	{
 		var color;
 		var i;
+
+		// Store the mapname for later use
+		_currentMapName = mapname;
 
 		// Not found on weather, black sky, no cloud.
 		if (!WeatherTable.sky[mapname]) {
@@ -86,6 +138,12 @@ define(function( require )
 			for (i = 0; i < 7; i++) {
 				loadCloudTexture(gl, i);
 			}
+		}
+
+		// Store initial colors
+		if (WeatherTable.sky[mapname]) {
+			vec3.copy(_currentSkyColor, WeatherTable.sky[mapname].skyColor);
+			vec3.copy(_currentCloudColor, WeatherTable.sky[mapname].cloudColor);
 		}
 	}
 
@@ -156,6 +214,31 @@ define(function( require )
 	}
 
 
+	/**
+	 * Add new function to handle color transitions
+	 */
+	function startDayNightTransition(isNight) {
+		_isTransitioning = true;
+		_transitionStartTime = Renderer.tick;
+
+		var tempSkyColor = vec3.clone(_currentSkyColor);
+		var tempCloudColor = vec3.clone(_currentCloudColor);
+
+		if (isNight) {
+			_targetSkyColor.set([0.05, 0.05, 0.1]);
+			_targetCloudColor.set([0.1, 0.1, 0.15]);
+		} else {
+			// Use stored mapname instead of trying to get it from Session
+			if (WeatherTable.sky[_currentMapName]) {
+				vec3.copy(_targetSkyColor, WeatherTable.sky[_currentMapName].skyColor);
+				vec3.copy(_targetCloudColor, WeatherTable.sky[_currentMapName].cloudColor);
+			}
+		}
+
+		vec3.copy(_currentSkyColor, tempSkyColor);
+		vec3.copy(_currentCloudColor, tempCloudColor);
+	}
+
 
 	/**
 	 * Rendering clouds on maps
@@ -174,11 +257,30 @@ define(function( require )
 
 		var i, cloud, opacity;
 
-		// Init program
-		SpriteRenderer.bind3DContext( gl, modelView, projection, fog );
+		// Handle color transition
+		if (_isTransitioning) {
+			var progress = Math.min((tick - _transitionStartTime) / _transitionDuration, 1.0);
+			if (progress >= 1.0) {
+				_isTransitioning = false;
+				vec3.copy(_currentSkyColor, _targetSkyColor);
+				vec3.copy(_currentCloudColor, _targetCloudColor);
+			} else {
+				// Interpolate colors
+				vec3.lerp(_currentSkyColor, _currentSkyColor, _targetSkyColor, progress);
+				vec3.lerp(_currentCloudColor, _currentCloudColor, _targetCloudColor, progress);
+			}
+
+			// Update clear color
+			gl.clearColor(_currentSkyColor[0], _currentSkyColor[1], _currentSkyColor[2], 1.0);
+		}
+
+		// Update cloud color
+		SpriteRenderer.bind3DContext(gl, modelView, projection, fog);
+		SpriteRenderer.color[0] = _currentCloudColor[0];
+		SpriteRenderer.color[1] = _currentCloudColor[1];
+		SpriteRenderer.color[2] = _currentCloudColor[2];
 
 		// Base parameters
-		SpriteRenderer.color.set(_color);
 		SpriteRenderer.shadow        = 1.0;
 		SpriteRenderer.angle         = 0;
 		SpriteRenderer.size[0]       = 500;
@@ -235,6 +337,7 @@ define(function( require )
 	return {
 		init:           init,
 		setUpCloudData: setUpCloudData,
-		render:         render
+		render: render,
+		startDayNightTransition: startDayNightTransition
 	};
 });

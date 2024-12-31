@@ -1775,12 +1775,11 @@ define(function( require )
 					const overlay = document.querySelector('.main-canvas-overlay');
 					overlay.classList.add('night', 'transitioning');
 					overlay.classList.remove('day');
-
+					require('Renderer/Effects/Sky').startDayNightTransition(true);
 					overlay.addEventListener('animationend', function () {
 						overlay.classList.remove('transitioning');
 						overlay.removeEventListener('animationend', this);
 					});
-
 					// TODO ALEX: This whole sound thing with setVolume and the weird params is a mess, fix it
 					oldFilename = BGM.filename;
 					BGM.setVolume(0, 10000, 0, false).then(() => {
@@ -1794,6 +1793,11 @@ define(function( require )
 					const overlay = document.querySelector('.main-canvas-overlay');
 					overlay.classList.remove('night');
 					overlay.classList.add('day', 'transitioning');
+					require('Renderer/Effects/Sky').startDayNightTransition(false);
+					overlay.addEventListener('animationend', function () {
+						overlay.classList.remove('transitioning');
+						overlay.removeEventListener('animationend', this);
+					});
 					BGM.stop();
 					BGM.play(oldFilename);
 					BGM.setVolume(Preferences.BGM.volume, 0, 0, false);
