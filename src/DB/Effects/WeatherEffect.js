@@ -29,22 +29,33 @@ define(function()
 	Weather.sky['rwc01.rsw']       = { skyColor:[0.4, 0.6, 0.8, 1.0], cloudColor:[1.0, 1.0, 1.0] };
 	Weather.sky['sch_gld.rsw']     = { skyColor:[0.4, 0.6, 0.8, 1.0], cloudColor:[1.0, 1.0, 1.0] };
 	Weather.sky['valkyrie.rsw']    = { skyColor:[0.4, 0.6, 0.8, 1.0], cloudColor:[1.0, 1.0, 1.0] };
+	Weather.sky['hugel.rsw'] = { skyColor: [0.4, 0.6, 0.8, 1.0], cloudColor: [1.0, 1.0, 1.0] };
 	Weather.sky['hu_fild06.rsw'] = { skyColor: [0.4, 0.6, 0.8, 1.0], cloudColor: [1.0, 1.0, 1.0] };
+	Weather.sky['hu_fild02.rsw'] = { skyColor: [0.4, 0.6, 0.8, 1.0], cloudColor: [1.0, 1.0, 1.0] };
+	Weather.sky['prontera.rsw'] = { skyColor: [0.4, 0.6, 0.8, 1.0], cloudColor: [1.0, 1.0, 1.0] };
+	Weather.sky['prt_fild01.rsw'] = { skyColor: [0.4, 0.6, 0.8, 1.0], cloudColor: [1.0, 1.0, 1.0] };
+	Weather.sky['prt_fild02.rsw'] = { skyColor: [0.4, 0.6, 0.8, 1.0], cloudColor: [1.0, 1.0, 1.0] };
+	Weather.sky['prt_fild03.rsw'] = { skyColor: [0.4, 0.6, 0.8, 1.0], cloudColor: [1.0, 1.0, 1.0] };
+	Weather.sky['prt_fild04.rsw'] = { skyColor: [0.4, 0.6, 0.8, 1.0], cloudColor: [1.0, 1.0, 1.0] };
+	Weather.sky['prt_fild05.rsw'] = { skyColor: [0.4, 0.6, 0.8, 1.0], cloudColor: [1.0, 1.0, 1.0] };
+	Weather.sky['prt_fild06.rsw'] = { skyColor: [0.4, 0.6, 0.8, 1.0], cloudColor: [1.0, 1.0, 1.0] };
+	Weather.sky['prt_fild07.rsw'] = { skyColor: [0.4, 0.6, 0.8, 1.0], cloudColor: [1.0, 1.0, 1.0] };
+	Weather.sky['prt_fild08.rsw'] = { skyColor: [0.4, 0.6, 0.8, 1.0], cloudColor: [1.0, 1.0, 1.0] };
 	Weather.sky['yuno.rsw']        = { skyColor:[0.4, 0.6, 0.8, 1.0], cloudColor:[1.0, 1.0, 1.0] };
 
 	// Extras
 	Weather.sky['5@tower.rsw']     = { skyColor:[0.2, 0.0, 0.2, 1.0],    cloudColor:[1.0, 0.7, 0.7] };
 	Weather.sky['thana_boss.rsw']  = { skyColor:[0.88, 0.83, 0.76, 1.0], cloudColor:[0.37, 0.0, 0.0] };
 
-	Weather.sky['your_map.rsw'] = {
-		skyColor: [0.4, 0.6, 0.8, 1.0],
-		cloudColor: [1.0, 1.0, 1.0],
-		cloudZone: {
-			startX: 0.66,  // Start at 66% of map width
-			width: 200,
-			height: 200
-		}
-	};
+	// Weather.sky['your_map.rsw'] = {
+	// 	skyColor: [0.4, 0.6, 0.8, 1.0],
+	// 	cloudColor: [1.0, 1.0, 1.0],
+	// 	cloudZone: {
+	// 		startX: 0.66,  // Start at 66% of map width
+	// 		width: 200,
+	// 		height: 200
+	// 	}
+	// };
 
 
 	// TODO: add others effect (snow, fireworks, etc.)
