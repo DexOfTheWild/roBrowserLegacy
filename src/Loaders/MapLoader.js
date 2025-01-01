@@ -329,7 +329,7 @@ define( ['Core/FileManager'], function( FileManager )
 				}
 
 				// Because of a problem the model isn't load, remove it from the list
-				if (!objects[pos] ) {
+				if (!objects[pos] || !objects[pos].main_node) {
 					objects.splice(pos, 1);
 					filenames.splice(pos, 1);
 					continue;

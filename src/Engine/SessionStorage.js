@@ -72,6 +72,8 @@ define(function()
 			showPVPCounter  : false,
 			showBFCounter   : false,
 			isBattleField   : false,
+			isNight: true,
+			timeOfDay: 0,
 		},
 	};
 });

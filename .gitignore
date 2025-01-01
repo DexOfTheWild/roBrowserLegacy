@@ -6,6 +6,7 @@
 /client/System/*
 /dist/
 /node_modules/
+/storybook/node_modules/
 /index.html
 /package-lock.json
 /GrannyModelViewer.js

@@ -81,16 +81,22 @@ function(      WebGL,         Texture,   Preferences )
 		attribute vec2 aLightmapCoord;
 		attribute vec2 aTileColorCoord;
 
+		attribute float aCustomAttribute;
+
 		varying vec2 vTextureCoord;
 		varying vec2 vLightmapCoord;
 		varying vec2 vTileColorCoord;
 		varying float vLightWeighting;
+
+		varying float vCustomValue;
 
 		uniform mat4 uModelViewMat;
 		uniform mat4 uProjectionMat;
 
 		uniform vec3 uLightDirection;
 		uniform mat3 uNormalMat;
+
+		uniform float uTime;
 
 		void main(void) {
 			gl_Position     = uProjectionMat * uModelViewMat * vec4( aPosition, 1.0);
@@ -103,6 +109,10 @@ function(      WebGL,         Texture,   Preferences )
 			vec3 dirVector   = normalize(lDirection.xyz);
 			float dotProduct = dot( uNormalMat * aVertexNormal, dirVector );
 			vLightWeighting  = max( dotProduct, 0.1 );
+
+			float wave = sin(uTime * 0.001 + aPosition.x * 0.1);
+			wave = wave * (1.0 - max(wave, 0.0) * 0.5);
+			vCustomValue = wave * 0.5 + 0.5;
 		}
 	`;
 
@@ -112,12 +122,14 @@ function(      WebGL,         Texture,   Preferences )
 	var _fragmentShader = `
 		#version 100
 		#pragma vscode_glsllint_stage : frag
-		precision highp float;
+			precision highp float;
 
 		varying vec2 vTextureCoord;
 		varying vec2 vLightmapCoord;
 		varying vec2 vTileColorCoord;
 		varying float vLightWeighting;
+
+		varying float vCustomValue;
 
 		uniform sampler2D uDiffuse;
 		uniform sampler2D uLightmap;
@@ -132,6 +144,8 @@ function(      WebGL,         Texture,   Preferences )
 		uniform vec3  uLightAmbient;
 		uniform vec3  uLightDiffuse;
 		uniform float uLightOpacity;
+
+		uniform float uEffectStrength;
 
 		void main(void) {
 
@@ -150,16 +164,20 @@ function(      WebGL,         Texture,   Preferences )
 			vec3 Ambient    = uLightAmbient * uLightOpacity;
 			vec3 Diffuse    = uLightDiffuse * lightWeight;
 
+			vec3 customEffect = vec3(vCustomValue * uEffectStrength);
+
 			if (uLightMapUse) {
 				vec4 lightmap   = texture2D( uLightmap, vLightmapCoord.st);
 				vec4 LightColor = vec4( (Ambient + Diffuse) * lightmap.a, 1.0);
 				vec4 ColorMap   = vec4( lightmap.rgb, 0.0 );
 
 				gl_FragColor    = texture * clamp(LightColor, 0.0, 1.0) + ColorMap;
+				gl_FragColor.rgb += customEffect;
 			}
 			else {
 				vec4 LightColor = vec4( Ambient + Diffuse, 1.0);
 				gl_FragColor    = texture * clamp(LightColor, 0.0, 1.0);
+				gl_FragColor.rgb += customEffect;
 			}
 
 			if (uFogUse) {
@@ -237,6 +255,10 @@ function(      WebGL,         Texture,   Preferences )
 		gl.activeTexture( gl.TEXTURE2 );
 		gl.bindTexture( gl.TEXTURE_2D, _tileColor );
 		gl.uniform1i( uniform.uTileColor, 2 );
+
+		// Cloud shadow effect
+		gl.uniform1f(uniform.uTime, performance.now());
+		gl.uniform1f(uniform.uEffectStrength, 0.2); // Adjust effect strength
 
 		// Send mesh
 		gl.drawArrays(  gl.TRIANGLES, 0, _vertCount );

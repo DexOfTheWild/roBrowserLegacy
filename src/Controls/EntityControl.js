@@ -243,6 +243,11 @@ define(function( require )
 				pkt.dest[1] = y;
 				Network.sendPacket(pkt);
 				return true;
+			case Entity.TYPE_MOB:
+				if (Session.EnhancedTargeting) {
+					handleAttackRequest(Session.Entity, this);
+				}
+				break;
 		}
 
 		return false;
@@ -384,7 +389,7 @@ define(function( require )
 					if (!Camera.action.active) {
 						Cursor.setType( Cursor.ACTION.DEFAULT );
 					}
-					if(!Session.TouchTargeting && !Session.autoFollow){
+					if (!Session.TouchTargeting && !Session.autoFollow && !Session.EnhancedTargeting) {
 						break;
 					}
 				}
@@ -406,50 +411,9 @@ define(function( require )
 				});
 
 
-				if(!Session.TouchTargeting && !Session.autoFollow){
-					var out   = [];
-					var count = PathFinding.search(
-						main.position[0] | 0, main.position[1] | 0,
-						this.position[0] | 0, this.position[1] | 0,
-						main.attack_range + 1,
-						out
-					);
-
-					// Can't attack
-					if (!count) {
-						return true;
-					}
-
-					if(main.isOverWeight){
-						ChatBox.addText( DB.getMessage(243), ChatBox.TYPE.ERROR, ChatBox.FILTER.PUBLIC_LOG);
-						return true;
-					}
-
-					if(PACKETVER.value >= 20180307) {
-						pkt        = new PACKET.CZ.REQUEST_ACT2();
-					} else {
-						pkt        = new PACKET.CZ.REQUEST_ACT();
-					}
-					pkt.action    = 7;
-					pkt.targetGID = this.GID;
-
-					// in range send packet
-					if (count < 2) {
-						Network.sendPacket(pkt);
-						return true;
-					}
-
-					// Move to entity
-					Session.moveAction = pkt;
-
-					if(PACKETVER.value >= 20180307) {
-						pkt         = new PACKET.CZ.REQUEST_MOVE2();
-					} else {
-						pkt         = new PACKET.CZ.REQUEST_MOVE();
-					}
-					pkt.dest[0] = out[(count-1)*2 + 0];
-					pkt.dest[1] = out[(count-1)*2 + 1];
-					Network.sendPacket(pkt);
+				// Don't handle attack request if EnhancedTargeting is enabled
+				if (!Session.TouchTargeting && !Session.autoFollow && !Session.EnhancedTargeting) {
+					return handleAttackRequest(main, this);
 				}
 
 
@@ -566,6 +530,55 @@ define(function( require )
 			return false;
 	}
 
+	function handleAttackRequest(main, target) {
+		var out = [];
+		var count = PathFinding.search(
+			main.position[0] | 0, main.position[1] | 0,
+			target.position[0] | 0, target.position[1] | 0,
+			main.attack_range + 1,
+			out
+		);
+
+		// Can't attack
+		if (!count) {
+			return true;
+		}
+
+		if (main.isOverWeight) {
+			ChatBox.addText(DB.getMessage(243), ChatBox.TYPE.ERROR, ChatBox.FILTER.PUBLIC_LOG);
+			return true;
+		}
+
+		var pkt;
+		if (PACKETVER.value >= 20180307) {
+			pkt = new PACKET.CZ.REQUEST_ACT2();
+		} else {
+			pkt = new PACKET.CZ.REQUEST_ACT();
+		}
+		pkt.action = 7;
+		pkt.targetGID = target.GID;
+
+		// in range send packet
+		if (count < 2) {
+			Network.sendPacket(pkt);
+			return true;
+		}
+
+		// Move to entity
+		Session.moveAction = pkt;
+
+		if (PACKETVER.value >= 20180307) {
+			pkt = new PACKET.CZ.REQUEST_MOVE2();
+		} else {
+			pkt = new PACKET.CZ.REQUEST_MOVE();
+		}
+		pkt.dest[0] = out[(count - 1) * 2 + 0];
+		pkt.dest[1] = out[(count - 1) * 2 + 1];
+		Network.sendPacket(pkt);
+
+		return true;
+	}
+
 	/**
 	 * Export
 	 */
@@ -580,5 +593,6 @@ define(function( require )
 		this.onRoomEnter   = onRoomEnter;
 		this.onContextMenu = onContextMenu;
 		this.canAttackEntity = canAttackEntity;
+		this.handleAttackRequest = handleAttackRequest;
 	};
 });

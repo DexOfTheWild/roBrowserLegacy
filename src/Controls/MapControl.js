@@ -146,8 +146,18 @@ define(function( require )
 				_rightClickPosition[0] = Mouse.screen.x;
 				_rightClickPosition[1] = Mouse.screen.y;
 
-				if (!KEYS.SHIFT && KEYS.ALT && !KEYS.CTRL) {
+				// If entity is a mob, handle targeting
+				if (entityOver === Session.Entity) {
+					if (entityFocus) {
+						entityFocus.onFocusEnd();
+					}
+					entityOver.onFocus();
+					EntityManager.setFocusEntity(entityOver);
+					return false;
+				}
 
+				// Original camera rotation logic
+				if (!KEYS.SHIFT && KEYS.ALT && !KEYS.CTRL) {
 					Cursor.setType( Cursor.ACTION.ROTATE );
 					Camera.rotate( false );
 
@@ -173,10 +183,8 @@ define(function( require )
 					}
 
 				} else {
-
 					Cursor.setType( Cursor.ACTION.ROTATE );
-					Camera.rotate( true );
-
+					Camera.rotate(true);
 				}
 				break;
 		}
@@ -222,8 +230,6 @@ define(function( require )
 
 			// Right Click
 			case 3:
-				Cursor.setType( Cursor.ACTION.DEFAULT );
-				Camera.rotate( false );
 
 				// Seems like it's how the official client handle the contextmenu
 				// Just check for the same position on mousedown and mouseup
@@ -234,6 +240,10 @@ define(function( require )
 						entity.onContextMenu();
 					}
 				}
+
+				Cursor.setType(Cursor.ACTION.DEFAULT);
+				Camera.rotate(false);
+
 				break;
 		}
 	}

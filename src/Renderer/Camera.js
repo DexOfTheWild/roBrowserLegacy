@@ -149,7 +149,7 @@ define(function( require )
 	/**
 	 * @var {number} camera zoom indoor
 	 */
-	Camera.MAX_ZOOM_INDOOR 				= 2.5;
+	Camera.MAX_ZOOM_INDOOR = 2;
 
 	/**
 	 * @var {number} min camera altitude indoor
@@ -302,6 +302,7 @@ define(function( require )
 			this.zoomFinal = Preferences.indoorZoom || 125;
 			this.angleFinal[0] = 230;
 			this.angleFinal[1] = -40;
+			this.enable3RDPerson = false;
 		} else {
 			this.zoomFinal = Preferences.zoom || 125;
 		}

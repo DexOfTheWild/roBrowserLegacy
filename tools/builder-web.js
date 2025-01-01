@@ -189,6 +189,12 @@ function createHTML(){
                                 },
                                 KeyToMove: {
                                     path: 'KeyToMove/KeyToMove.js'
+                                },
+                                EnhancedTargeting: {
+                                    path: 'EnhancedTargeting/index.js'
+                                },
+                                Shaders: {
+                                    path: 'Shaders/index.js'
                                 }
                             },
 							clientHash: null,
@@ -196,7 +202,7 @@ function createHTML(){
 							enableBank: false,
 							enableMapName: false,
 							enableCheckAttendance: false,
-							CameraMaxZoomOut: 3,
+							CameraMaxZoomOut: 2,
                             loadLua: true,
                             ThirdPersonCamera: true
                         };

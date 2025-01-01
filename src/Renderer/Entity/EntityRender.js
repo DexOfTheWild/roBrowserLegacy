@@ -346,6 +346,19 @@ define(function (require) {
 				return;
 			}
 
+			// Adjust size for Poring
+			let spriteSize = files.size;
+			if (entity.objecttype === entity.constructor.TYPE_MOB) {
+				if (entity.display.name.includes("Big Poring")) {
+					spriteSize += 3;
+					if (type === 'shadow') {
+						SpriteRenderer.position[2] -= 0.1 * (spriteSize - 1);
+					} else {
+						SpriteRenderer.position[2] += 0.4 * (spriteSize - 1);
+					}
+				}
+			}
+
 			// If palette, load palette, else get back sprite palette
 			var pal = (files.pal && Client.loadFile(files.pal)) || spr;
 
@@ -426,7 +439,7 @@ define(function (require) {
 
 			// Render all frames
 			for (var i = 0, count = layers.length; i < count; ++i) {
-				entity.renderLayer(layers[i], spr, pal, files.size, _position, type, isBlendModeOne);
+				entity.renderLayer(layers[i], spr, pal, spriteSize, _position, type, isBlendModeOne);
 			}
 
 			// Save reference

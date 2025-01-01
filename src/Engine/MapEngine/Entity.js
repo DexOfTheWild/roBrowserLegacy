@@ -44,6 +44,7 @@ define(function( require )
 	var MagicRing         = require('Renderer/Effects/MagicRing');
 	var Preferences = require('Preferences/Audio');
 	var BGM = require('Audio/BGM');
+	var MapRenderer = require('Renderer/MapRenderer');
 
 	var BasicInfo         = require('UI/Components/BasicInfo/BasicInfo');
 	var ChatBox           = require('UI/Components/ChatBox/ChatBox');
@@ -1771,18 +1772,23 @@ define(function( require )
 
 			case StatusConst.SKE:
 				if (pkt.state === 1) {
-
 					const overlay = document.querySelector('.main-canvas-overlay');
+					if (Session.mapState.isNight) {
+						console.log('[DayNight] Already night. Just applying night class with no transition.');
+						overlay.classList.add('night');
+						overlay.classList.remove('day');
+						return;
+					}
+
+					Session.mapState.isNight = true;
 					overlay.classList.add('night', 'transitioning');
 					overlay.classList.remove('day');
-
+					require('Renderer/Effects/Sky').startDayNightTransition(true);
 					overlay.addEventListener('animationend', function () {
 						overlay.classList.remove('transitioning');
 						overlay.removeEventListener('animationend', this);
 					});
-
 					// TODO ALEX: This whole sound thing with setVolume and the weird params is a mess, fix it
-					oldFilename = BGM.filename;
 					BGM.setVolume(0, 10000, 0, false).then(() => {
 						BGM.audio.pause();
 						BGM.setVolume(Preferences.BGM.volume, 0, 0, false);
@@ -1791,12 +1797,22 @@ define(function( require )
 						Sound.play("OOT_6pmWolf.wav", 1);
 					});
 				} else {
-					const overlay = document.querySelector('.main-canvas-overlay');
-					overlay.classList.remove('night');
-					overlay.classList.add('day', 'transitioning');
-					BGM.stop();
-					BGM.play(oldFilename);
-					BGM.setVolume(Preferences.BGM.volume, 0, 0, false);
+					if (Session.mapState.isNight) {
+						Session.mapState.isNight = false;
+						const overlay = document.querySelector('.main-canvas-overlay');
+						overlay.classList.remove('night');
+						overlay.classList.add('day', 'transitioning');
+						require('Renderer/Effects/Sky').startDayNightTransition(false);
+						overlay.addEventListener('animationend', function () {
+							overlay.classList.remove('transitioning');
+							overlay.removeEventListener('animationend', this);
+						});
+						BGM.stop();
+						BGM.play(MapRenderer.getCurrentMapInfo().mp3);
+						BGM.setVolume(Preferences.BGM.volume, 0, 0, false);
+					} else {
+						console.log('[DayNight] Already day.');
+					}
 				}
 				break;
 

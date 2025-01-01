@@ -22,6 +22,7 @@ define(function(require)
 	var SoundOption        = require('UI/Components/SoundOption/SoundOption');
 	var GraphicsOption     = require('UI/Components/GraphicsOption/GraphicsOption');
 	var ShortCutOption     = require('UI/Components/ShortCutOption/ShortCutOption');
+	var MobileUI = require('UI/Components/MobileUI/MobileUI');
 	var htmlText           = require('text!./Escape.html');
 	var cssText            = require('text!./Escape.css');
 
@@ -57,6 +58,7 @@ define(function(require)
 		this.ui.find('.resurection').click(function(){ Escape.onResurectionRequest(); });
 		this.ui.find('.savepoint').click(function(){ Escape.onReturnSavePointRequest(); });
 		this.ui.find('.charselect').click(function(){ Escape.onCharSelectionRequest(); });
+		this.ui.find('.toggle-mobile-ui').click(function () { Escape.onToggleMobileUI(); });
 		this.ui.find('.hotkey').click(onToggleShortcutUI);
 		this.ui.find('.exit').click(function(){ Escape.onExitRequest(); });
 		this.ui.find('.cancel').click(function(){ Escape.ui.hide(); });
@@ -145,6 +147,15 @@ define(function(require)
 		else {
 			ShortCutOption.remove();
 		}
+	}
+
+
+	/**
+	 * Click on Toggle Mobile UI button, toggle the UI
+	 */
+	Escape.onToggleMobileUI = function onToggleMobileUI() {
+		console.log('Toggle Mobile UI');
+		MobileUI.show();
 	}
 
 
