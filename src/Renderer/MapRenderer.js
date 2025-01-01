@@ -290,14 +290,16 @@ define(function( require )
 		Models.init( Renderer.getContext(), data );
 	}
 
+	MapRenderer.getCurrentMapInfo = function () {
+		return DB.getMap(MapRenderer.currentMap.replace(/\.gat$/i, '.rsw'));
+	}
 
 	/**
 	 * Once the map finished to load
 	 */
 	function onMapComplete( success, error )
 	{
-		var worldResource = this.currentMap.replace(/\.gat$/i, '.rsw');
-		var mapInfo       = DB.getMap(worldResource);
+		var mapInfo = MapRenderer.getCurrentMapInfo();
 
 		// Problem during loading ?
 		if (!success) {
@@ -320,6 +322,7 @@ define(function( require )
 		// Initialize renderers
 		Renderer.init();
 		var gl = Renderer.getContext();
+		const worldResource = MapRenderer.currentMap.replace(/\.gat$/i, '.rsw');
 
 		SpriteRenderer.init(gl);
 		Sky.init( gl, worldResource );
