@@ -1,6 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap");
+
+@import "variables";
 @import "mixins";
-@import "Inventory";
+@import "buttons";
+@import "checkbox";
+
+@import "login";
 
 @mixin absolute-fill {
   position: absolute;
@@ -14,20 +19,18 @@
   position: relative;
 }
 
-
-
 #MainCanvasOverlay {
   @include absolute-fill;
   height: 100vh;
   z-index: 1;
   pointer-events: none;
   &.intro {
-      background: #2ec4e6;
+    background: #2ec4e6;
     &::before {
       @include absolute-fill;
-      content: '';
-      
-      background: url('/static/img/mana-overlook.png'); 
+      content: "";
+
+      background: url("/static/img/mana-overlook.png");
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
@@ -37,18 +40,27 @@
       }
       @include animate-bg(30s, linear);
     }
-    
+
     &::after {
+      @keyframes fadeUpOverlay {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
       @include absolute-fill;
-      content: '';
+      content: "";
       display: none;
       @include media-query(tablet) {
         display: block;
       }
-      background: url('/static/img/cliff-overlay.png');
+      background: url("/static/img/cliff-overlay.png");
       background-size: contain;
       background-position: right;
       background-repeat: no-repeat;
+      transform: translateY(20px);
+      opacity: 0;
+      animation: fadeUpOverlay 0.4s ease-out forwards;
     }
   }
 }
@@ -61,7 +73,7 @@
   }
 
   &.night {
-    background: rgba(#1E1033, 0.4); 
+    background: rgba(#1e1033, 0.4);
     &.transitioning {
       animation: sunsetToNight 20s ease;
     }
@@ -70,7 +82,7 @@
 
 @keyframes sunsetToNight {
   0% {
-    background: rgba(255,255,255, 0.0);
+    background: rgba(255, 255, 255, 0);
   }
   20% {
     background: rgba(#b15217, 0.1); // Warm orange
@@ -79,10 +91,10 @@
     background: rgba(#8e3332, 0.2); // Reddish orange
   }
   60% {
-    background: rgba(#462B57, 0.35); // Purple dusk
+    background: rgba(#462b57, 0.35); // Purple dusk
   }
   100% {
-    background: rgba(#1E1033, 0.4); // Final night color
+    background: rgba(#1e1033, 0.4); // Final night color
   }
 }
 
@@ -111,7 +123,11 @@ input[type="submit"] {
   $parchment-color: darken(#dad1bf, 15);
   font-family: "Plus Jakarta Sans", sans-serif;
   box-shadow: 0 0 4px 4px rgba(0, 0, 0, 0.25);
-  background: linear-gradient(rgba($parchment-color, 0.5), rgba($parchment-color, 0.5)), url('/static/img/dialogue-bg.png');
+  background: linear-gradient(
+      rgba($parchment-color, 0.5),
+      rgba($parchment-color, 0.5)
+    ),
+    url("/static/img/dialogue-bg.png");
   font-size: 20px;
   color: #4b2e14;
   // text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
@@ -131,7 +147,7 @@ input[type="submit"] {
 }
 
 #NpcBox {
-  top: auto!important;
+  top: auto !important;
   left: auto !important;
   width: 100% !important;
   height: auto !important;
@@ -153,7 +169,7 @@ input[type="submit"] {
     height: auto !important;
     border-radius: 5px;
     flex-grow: 1;
-    
+
     .portrait {
       &:empty {
         display: none;
@@ -173,7 +189,7 @@ input[type="submit"] {
       }
     }
   }
-  
+
   .content {
     display: flex !important;
     flex-direction: column;
@@ -184,16 +200,16 @@ input[type="submit"] {
     overflow-y: auto;
     padding: 0.5rem 1rem !important;
     order: 2;
-    
+
     span {
       margin-right: 4px;
       line-height: 1.25;
-      
+
       &:last-child {
         margin-right: 0;
       }
     }
-    
+
     h1 {
       font-size: 24px;
       font-weight: 600;
@@ -203,20 +219,20 @@ input[type="submit"] {
       width: 100%;
     }
   }
-  
+
   .btn {
     border: 0;
     background-repeat: no-repeat;
     background-color: transparent;
     display: none;
   }
-  
+
   .close {
     position: absolute;
     top: 16px;
     right: 16px;
   }
-  
+
   .next {
     position: absolute;
     bottom: 16px;
@@ -230,11 +246,10 @@ input[type="submit"] {
   // backdrop-filter: blur(2px);
   // background: rgba(0,0,0,0.25) !important;
   background: none !important;
-  
+
   hr {
-    
   }
-  
+
   .content {
     display: flex;
     flex-direction: column;
@@ -244,15 +259,14 @@ input[type="submit"] {
     justify-content: center;
     height: auto;
     padding: 0 0.5rem;
-    
+
     & > button {
       padding: 0.5rem;
       border: 2px solid rgba(0, 0, 0, 0);
-      
+
       &:hover {
         border: 2px solid #4b2e14;
       }
     }
   }
 }
-

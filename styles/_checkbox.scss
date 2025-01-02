@@ -1,0 +1,63 @@
+.dex-checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  > label {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+}
+
+.dex-checkbox {
+  position: relative;
+  background-color: white;
+  display: inline-flex;
+  box-shadow: 2px 2px 0 0 rgba(19, 19, 19, 0.35);
+  border-radius: 2px;
+  width: 16px;
+  height: 16px;
+
+  &__input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+
+    &:checked ~ .dex-checkbox__checkmark {
+      border-color: gray;
+
+      &:after {
+        display: block;
+      }
+    }
+  }
+
+  &__checkmark {
+    position: absolute;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+    transition: background-color 0.2s ease;
+
+    &:after {
+      content: '';
+      position: absolute;
+      display: none;
+      left: 50%;
+      bottom: -1px;
+      transform: translate(-50%, -50%) rotate(45deg);
+      width: 4px;
+      height: 8px;
+      border: solid #262626;
+      border-width: 0 2px 2px 0;
+    }
+  }
+
+  &:hover .dex-checkbox__checkmark {
+    cursor: pointer;
+    background-color: #eee;
+  }
+}

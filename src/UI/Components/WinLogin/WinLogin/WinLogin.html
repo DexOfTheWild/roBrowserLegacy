@@ -1,10 +1,20 @@
-<div id="WinLogin" data-background="login_interface/win_login.bmp">
-	<!-- User Auth -->
-	<input class="user" type="text" value="" />
-	<input class="pass" type="password" value=""/>
-	<button class="save" type="button" data-background="login_interface/chk_saveoff.bmp" data-preload="login_interface/chk_saveon.bmp"></button>
-
-	<!-- Buttons -->
-	<button class="btn connect" type="submit" data-background="login_interface/btn_connect.bmp" data-hover="login_interface/btn_connect_a.bmp" data-down="login_interface/btn_connect_b.bmp"></button>
-	<button class="btn exit" type="button" data-background="login_interface/btn_exit.bmp" data-hover="login_interface/btn_exit_a.bmp" data-down="login_interface/btn_exit_b.bmp"></button>
+<div id="WinLogin">
+	<div class="user-auth">
+		<label htmlFor="login-user">
+			<input class="user" id="login-user" type="text" placeholder="Username" />
+		</label>
+		<label htmlFor="login-pass">
+			<input class="pass" id="login-pass" type="password" placeholder="Password" />
+		</label>
+		<div class="dex-checkbox-container">
+			<label htmlFor="login-save" class="save dex-checkbox">
+				<input type="checkbox" id="login-save" class="dex-checkbox__input" />
+				<span class="dex-checkbox__checkmark"></span>
+			</label>
+			<label htmlFor="login-save" class="dex-checkbox__label">Save Login</label>
+		</div>
+	</div>
+	<div class="dex-buttons">
+		<button class="btn connect dex-button dex-button--primary dex-button--large" type="submit">Login</button>
+	</div>
 </div>

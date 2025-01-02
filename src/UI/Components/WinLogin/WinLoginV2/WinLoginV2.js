@@ -70,7 +70,7 @@ define(function(require)
 
 		WinLoginV2Background.init();
 
-		this.draggable(WinLoginV2.ui.find('.win_login'));
+		// this.draggable(WinLoginV2.ui.find('.win_login'));
 
 		// Save Elements
 		_inputUsername = WinLoginV2.ui.find('.user').mousedown(function(event){ this.focus(); this.value = ''; event.stopImmediatePropagation(); return false; });

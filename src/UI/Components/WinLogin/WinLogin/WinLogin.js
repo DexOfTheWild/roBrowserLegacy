@@ -67,7 +67,7 @@ define(function(require)
 
 		var ui = this.ui;
 
-		this.draggable();
+		// this.draggable();
 
 		// Save Elements
 		_inputUsername = ui.find('.user').mousedown(function(event){ this.focus(); this.value = ''; event.stopImmediatePropagation(); return false; });
@@ -89,10 +89,7 @@ define(function(require)
 		_inputUsername.val(_preferences.saveID ? _preferences.ID : '');
 		_inputPassword.val('');
 
-		// Display save button
-		Client.loadFile( DB.INTERFACE_PATH + 'login_interface/chk_save' + ( _preferences.saveID ? 'on' : 'off' ) + '.bmp', function(url) {
-			_buttonSave.css('backgroundImage', 'url(' + url + ')');
-		});
+		document.getElementById('login-save').checked = _preferences.saveID;
 
 		if (_preferences.ID.length) {
 			_inputPassword.focus();
@@ -143,10 +140,7 @@ define(function(require)
 	function toggleSaveButton( event )
 	{
 		_preferences.saveID = !_preferences.saveID;
-
-		Client.loadFile( DB.INTERFACE_PATH + 'login_interface/chk_save' + ( _preferences.saveID ? 'on' : 'off' ) + '.bmp', function(url) {
-			_buttonSave.css('backgroundImage', 'url(' + url + ')');
-		});
+		document.getElementById('login-save').checked = _preferences.saveID;
 
 		event.stopImmediatePropagation();
 		return false;

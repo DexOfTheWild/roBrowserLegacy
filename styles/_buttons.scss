@@ -1,0 +1,63 @@
+
+button,
+input[type='submit'],
+input[type='reset'] {
+  background: none;
+  color: inherit;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  outline: inherit;
+}
+
+.dex-buttons {
+  padding: 0 1.5rem 1.5rem 1.5rem;
+}
+
+.dex-button {
+  cursor: pointer;
+  border-radius: 24px;
+  width: 100%;
+  text-align: center;
+
+  // Button sizes
+  &--small {
+    padding: 0.5rem;
+    font-size: 14px;
+  }
+
+  &--medium {
+    padding: 0.5rem 1rem;
+  }
+
+  &--large {
+    padding: 0.75rem 1.5rem;
+    font-size: 14px;
+  }
+
+  // Button Themes
+  &--primary {
+    background-color: #79bef0;
+    color: white;
+    font-weight: 600;
+
+    &:active {
+      background-color: #0070f3;
+    }
+
+    &:disabled {
+      background-color: #0070f3;
+    }
+
+    &.dex-button--shadow {
+      box-shadow: 2px 2px 0 0 rgba(black, 0.15);
+    }
+  }
+
+  // Button States
+  &:disabled {
+    background-color: $dark-bg-light;
+    cursor: not-allowed;
+  }
+}

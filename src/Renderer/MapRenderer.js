@@ -110,6 +110,9 @@ define(function( require )
 			return;
 		}
 
+		// DexRO - Remove intro class from MainCanvasOverlay
+		window.document.getElementById('MainCanvasOverlay').classList.remove('intro');
+
 		// Support for instance map
 		// Is it always 3 digits ?
 		mapname = mapname

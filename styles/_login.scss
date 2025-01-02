@@ -1,0 +1,70 @@
+#WinLogin {
+  @keyframes fadeUpBG {
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  }
+  color: white;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 14px;
+  position: absolute;
+  left: 50%;
+  bottom: 15%;
+  transform: translateX(-50%) translateY(20px);
+  opacity: 0;
+  animation: fadeUpBG 0.4s ease-out forwards;
+
+  background: $dark-bg;
+  // background: rgba(darken(#dad1bf, 15), 0.5);
+  border-radius: 5px;
+  min-width: 300px;
+  min-height: 200px;
+  box-shadow: 0 0 4px 4px rgba(black, 0.1);
+
+  .user-auth {
+    padding: 1.5rem;
+    width: inherit;
+    list-style-type: none;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    > label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      width: 100%;
+
+      &.save {
+        flex-direction: row;
+        align-items: center;
+        gap: 0.25rem;
+      }
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      background-color: $dark-bg-light;
+      color: #fff;
+      border: 1px solid #333;
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 14px;
+      outline: none;
+      box-shadow: none;
+      transition: border-color 0.2s ease-in-out;
+      padding: 0.75rem;
+      border-radius: 8px;
+
+      &:hover {
+        cursor: text;
+      }
+
+      &::placeholder {
+        color: lighten($dark-bg-light, 40);
+      }
+    }
+  }
+}
