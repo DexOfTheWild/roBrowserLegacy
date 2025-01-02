@@ -192,9 +192,6 @@ function createHTML(){
                                 },
                                 EnhancedTargeting: {
                                     path: 'EnhancedTargeting/index.js'
-                                },
-                                Shaders: {
-                                    path: 'Shaders/index.js'
                                 }
                             },
 							clientHash: null,
@@ -214,7 +211,7 @@ function createHTML(){
                     });
                 </script>
                 <div id="MainCanvas">
-                    <div class="main-canvas-overlay"></div>
+                    <div id="MainCanvasOverlay" class="main-canvas-overlay"></div>
                 </div>
                 <div id="DialogueBox"></div>
             </body>
