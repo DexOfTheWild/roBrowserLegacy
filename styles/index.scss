@@ -1,7 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+@import "mixins";
 @import "Inventory";
-@import "Login";
 
+@mixin absolute-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
 
 #MainCanvas {
   position: relative;
@@ -10,20 +17,43 @@
 
 
 #MainCanvasOverlay {
+  @include absolute-fill;
+  height: 100vh;
+  z-index: 1;
+  pointer-events: none;
   &.intro {
-    transition: background 1s ease;
-    background: #2ec4e6;
+      background: #2ec4e6;
+    &::before {
+      @include absolute-fill;
+      content: '';
+      
+      background: url('/static/img/mana-overlook.png'); 
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      overflow: hidden;
+      @include media-query(xlarge-desktop) {
+        background-size: 110%;
+      }
+      @include animate-bg(30s, linear);
+    }
+    
+    &::after {
+      @include absolute-fill;
+      content: '';
+      display: none;
+      @include media-query(tablet) {
+        display: block;
+      }
+      background: url('/static/img/cliff-overlay.png');
+      background-size: contain;
+      background-position: right;
+      background-repeat: no-repeat;
+    }
   }
 }
 
 .main-canvas-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  z-index: 1;
-  pointer-events: none;
   transition: background 20s ease;
 
   &.day {

@@ -1,0 +1,46 @@
+$breakpoint-mobile: 480px;
+$breakpoint-tablet: 768px;
+$breakpoint-desktop: 1024px;
+$breakpoint-large-desktop: 1200px;
+$breakpoint-xlarge-desktop: 1400px;
+
+// Mixins for media queries
+@mixin media-query($breakpoint) {
+  @if $breakpoint == mobile {
+    @media (min-width: $breakpoint-mobile) {
+      @content;
+    }
+  } @else if $breakpoint == tablet {
+    @media (min-width: $breakpoint-tablet) {
+      @content;
+    }
+  } @else if $breakpoint == desktop {
+    @media (min-width: $breakpoint-desktop) {
+      @content;
+    }
+  } @else if $breakpoint == large-desktop {
+    @media (min-width: $breakpoint-large-desktop) {
+      @content;
+    }
+  } @else if $breakpoint == xlarge-desktop {
+    @media (min-width: $breakpoint-xlarge-desktop) {
+      @content;
+    }
+  }
+}
+
+
+
+// Animation Mixin
+@mixin animate-bg($duration: 10s, $timing: linear) {
+  animation: move-bg $duration infinite alternate $timing;
+
+  @keyframes move-bg {
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: 50% 0; // Adjust as needed for subtle movement
+    }
+  }
+}
