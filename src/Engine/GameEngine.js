@@ -151,7 +151,7 @@ define(function( require )
 	function reload()
 	{
 		BGM.setAvailableExtensions( Configs.get('BGMFileExtension', ['mp3']) );
-		BGM.play('01.mp3');
+		// BGM.play('01.mp3');
 
 		UIManager.removeComponents();
 		Network.close();
@@ -186,7 +186,7 @@ define(function( require )
 
 			Renderer.stop();
 			MapRenderer.free();
-			BGM.play('01.mp3');
+			// BGM.play('01.mp3');
 		});
 
 		// Hooking WinList
