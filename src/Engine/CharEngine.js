@@ -51,7 +51,7 @@ define(function( require )
 	 */
 	function init( server )
 	{
-		BGM.play('01.mp3');
+		// BGM.play('01.mp3');
 		
 		//Notify MapEngine if it needs UI update
 		MapEngine.needsUIVerUpdate = (_server !== server);
@@ -116,10 +116,11 @@ define(function( require )
 	function reload()
 	{
 		Network.close();
-		Background.setImage( 'bgi_temp.bmp', function() {
+		// Background.setImage( 'bgi_temp.bmp', function() {
 			UIManager.removeComponents();
 			init( _server );
-		});
+		// });
+		document.querySelector('#MainCanvasOverlay').classList.add('intro');
 	}
 
 

@@ -227,7 +227,7 @@ define(function( require )
 			// Re-Loading game data with server specific files (txt, lua, lub)
 			q.add(function(){
 				DB.onReady = function(){
-					Background.setImage( 'bgi_temp.bmp'); // remove loading
+					// Background.setImage( 'bgi_temp.bmp'); // remove loading
 					q._next();
 				};
 				DB.onProgress = function(i, count) {
@@ -236,9 +236,9 @@ define(function( require )
 				UIManager.removeComponents();
 				Background.init();
 				Background.resize( Renderer.width, Renderer.height );
-				Background.setImage( 'bgi_temp.bmp', function(){
+				// Background.setImage( 'bgi_temp.bmp', function(){
 					DB.init();
-				});
+				// });
 			});
 		}
 

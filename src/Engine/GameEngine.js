@@ -106,18 +106,22 @@ define(function( require )
 		// Loading Game file (txt, lua, lub)
 		q.add(function(){
 			DB.onReady = function(){
-				Background.setImage( 'bgi_temp.bmp'); // remove loading
+				// Background.setImage( 'bgi_temp.bmp'); // remove loading
+				document.querySelector('#MainCanvasOverlay').classList.add('intro');
+
 				q._next();
 			};
 			DB.onProgress = function(i, count) {
 				Background.setPercent( Math.floor(i/count * 100) );
 			};
 			UIManager.removeComponents();
-			Background.init();
-			Background.resize( Renderer.width, Renderer.height );
-			Background.setImage( 'bgi_temp.bmp', function(){
-				DB.init();
-			});
+			// Background.init();
+			// Background.resize( Renderer.width, Renderer.height );
+			// Background.setImage( 'bgi_temp.bmp', function(){
+			// 	DB.init();
+			// });
+			document.querySelector('#MainCanvasOverlay').classList.add('intro');
+			DB.init();
 		});
 
 		q.add(function(){
@@ -157,9 +161,10 @@ define(function( require )
 		Network.close();
 
 		// Setup background
-		Background.init();
-		Background.resize( Renderer.width, Renderer.height );
-		Background.setImage( 'bgi_temp.bmp', function(){
+		// Background.init();
+		// Background.resize( Renderer.width, Renderer.height );
+		// Background.setImage( 'bgi_temp.bmp', function(){
+		document.querySelector('#MainCanvasOverlay').classList.add('intro');
 
 			// Display server list
 			var list = new Array( _servers.length );
@@ -187,7 +192,7 @@ define(function( require )
 			Renderer.stop();
 			MapRenderer.free();
 			// BGM.play('01.mp3');
-		});
+		// });
 
 		// Hooking WinList
 		WinList.onIndexSelected = onLoginServerSelected;
@@ -220,6 +225,7 @@ define(function( require )
 		Renderer.stop();
 		UIManager.removeComponents();
 		Background.remove(init);
+		document.querySelector('#MainCanvasOverlay').classList.remove('intro');
 	}
 
 
