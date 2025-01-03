@@ -1,7 +1,13 @@
 <div id="WinLogin">
-	<div class="user-auth">
-		<label htmlFor="login-user">
-			<input class="user" id="login-user" type="text" placeholder="Username" />
+	<div class="login-container-left">
+		<header class="dex-header">
+			<img src="/static/img/logo.png" alt="dexRO" />
+		</header>
+	</div>
+	<div class="login-container-right">
+		<div class="user-auth">
+			<label htmlFor="login-user">
+				<input class="user" id="login-user" type="text" placeholder="Username" />
 		</label>
 		<label htmlFor="login-pass">
 			<input class="pass" id="login-pass" type="password" placeholder="Password" />
@@ -12,9 +18,10 @@
 				<span class="dex-checkbox__checkmark"></span>
 			</label>
 			<label htmlFor="login-save" class="dex-checkbox__label">Save Login</label>
+			</div>
+			</div>
+			<div class="dex-buttons">
+				<button class="btn connect dex-button dex-button--primary dex-button--large" type="submit">Login</button>
 		</div>
-	</div>
-	<div class="dex-buttons">
-		<button class="btn connect dex-button dex-button--primary dex-button--large" type="submit">Login</button>
 	</div>
 </div>

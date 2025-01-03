@@ -38,16 +38,16 @@ input[type='reset'] {
 
   // Button Themes
   &--primary {
-    background-color: #79bef0;
+    background-color: #0070f3;
     color: white;
     font-weight: 600;
 
     &:active {
-      background-color: #0070f3;
+      background-color: #79bef0;
     }
 
     &:disabled {
-      background-color: #0070f3;
+      background-color: #79bef0;
     }
 
     &.dex-button--shadow {

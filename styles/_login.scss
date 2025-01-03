@@ -9,18 +9,48 @@
   font-family: "Plus Jakarta Sans", sans-serif;
   font-size: 14px;
   position: absolute;
-  left: 50%;
-  bottom: 15%;
+  left: 50% !important;
+  right: auto !important;
+  bottom: 0 !important;
+  top: auto !important;
   transform: translateX(-50%) translateY(20px);
   opacity: 0;
   animation: fadeUpBG 0.4s ease-out forwards;
+  border: 1px solid darken($dark-bg, 5%);
 
   background: $dark-bg;
   // background: rgba(darken(#dad1bf, 15), 0.5);
-  border-radius: 5px;
   min-width: 300px;
   min-height: 200px;
   box-shadow: 0 0 4px 4px rgba(black, 0.1);
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+
+  @include media-query(tablet) {
+    border-radius: 5px;
+    bottom: 15% !important;
+    width: auto;
+  }
+
+  .dex-header {
+    padding-left: 1.5rem;
+    > img {
+      width: 80px;
+      @include media-query(tablet) {
+        width: 146px;
+      }
+    }
+  }
+
+  .login-container-right {
+    flex-grow: 1;
+    @include media-query(tablet) {
+      flex-grow: 0;
+    }
+  }
 
   .user-auth {
     padding: 1.5rem;
