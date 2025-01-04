@@ -110,6 +110,7 @@ function(      WebGL,         glMatrix,      Camera )
 		uniform float uShadow;
 		uniform vec2 uTextSize;
 		uniform bool uIsRGBA;
+		uniform bool uIsShadowPass;
 
 		// With palette we don't have a good result because of the gl.NEAREST, so smooth it.
 		vec4 bilinearSample(vec2 uv, sampler2D indexT, sampler2D LUT) {
@@ -132,6 +133,21 @@ function(      WebGL,         glMatrix,      Camera )
 			vec4 tB = mix( bl, br, f.x );
 
 			return mix( tA, tB, f.y );
+		}
+
+		vec4 blur(sampler2D tex, vec2 uv, vec2 resolution) {
+				vec4 color = vec4(0.0);
+				float blur = 3.0;
+
+				// 9-tap gaussian blur
+				for (float x = -1.0; x <= 1.0; x += 1.0) {
+						for (float y = -1.0; y <= 1.0; y += 1.0) {
+								vec2 offset = vec2(x, y) * blur / resolution;
+								color += texture2D(tex, uv + offset);
+						}
+				}
+
+				return color / 9.0;
 		}
 
 
@@ -158,6 +174,11 @@ function(      WebGL,         glMatrix,      Camera )
 			// Apply shadow, apply color
 			texture.rgb   *= uShadow;
 			gl_FragColor   = texture * uSpriteRendererColor;
+
+			if (uIsShadowPass) {
+				// Apply blur for shadow pass
+				texture = blur(uDiffuse, vTextureCoord.st, uTextSize);
+			}
 
 			// Fog feature
 			if (uFogUse) {
@@ -402,6 +423,8 @@ function(      WebGL,         glMatrix,      Camera )
 		gl.uniform1f(  uniform.uFogFar,   fog.far );
 		gl.uniform3fv( uniform.uFogColor, fog.color );
 
+		gl.uniform1i(uniform.uIsShadowPass, false);
+
 		// Textures
 		gl.uniform1i( uniform.uDiffuse, 0 );
 		gl.uniform1i( uniform.uPalette, 1 );
@@ -465,58 +488,87 @@ function(      WebGL,         glMatrix,      Camera )
 	/**
 	 * Render in 3D mode
 	 */
-	function RenderCanvas3D(isBlendModeOne)
+
+	// Dex: Probably a better way to handle this than modifying the function signature
+	function RenderCanvas3D(isBlendModeOne, type)
 	{
 		// Nothing to render ?
 		if (!this.image.texture || !this.color[3]) {
 			return;
 		}
 
-		// gl.uniform* seems to be expensive
-		// cache values to avoid flooding the GPU and reducing perf.
-
 		var uniform = _program.uniform;
 		var gl      = _gl;
 		var use_pal = this.image.palette !== null;
 
-		if (isBlendModeOne) {
-			gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-		} else if (isBlendModeOne === false) {
-			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+		const shouldRenderShadow = type !== "shadow" && (type === "body" || type === "head");
+		if (shouldRenderShadow) {
+		// First pass - render black blurred shadow
+			if (isBlendModeOne) {
+				gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+			} else {
+				gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+			}
+
+			// Save original values
+			const originalColor = this.color.slice();
+			const originalDepth = this.depth;
+			const originalOffset = this.offset.slice();
+
+			// Modify for shadow pass
+			this.color = new Float32Array([0, 0, 0, 0.8]); // Black with 50% opacity
+			this.depth -= 0.1; // Render slightly behind
+			this.offset[0] += 2; // Offset shadow slightly
+			this.offset[1] += 2;
+
+			// Render shadow pass
+			renderSprite.call(this, gl, uniform, use_pal);
+
+			// Restore original values
+			this.color = originalColor;
+			this.depth = originalDepth;
+			this.offset = originalOffset;
 		}
 
+		// Regular render pass
+		renderSprite.call(this, gl, uniform, use_pal);
+	}
+
+
+	// Helper function to avoid code duplication
+	function renderSprite(gl, uniform, use_pal) {
 		if (this.shadow !== _shadow) {
-			gl.uniform1f( uniform.uShadow, _shadow = this.shadow);
+			gl.uniform1f(uniform.uShadow, _shadow = this.shadow);
 		}
-		gl.uniform3fv( uniform.uSpriteRendererPosition, this.position );
+		gl.uniform3fv(uniform.uSpriteRendererPosition, this.position);
 
 		// Palette
 		if (use_pal) {
-			gl.activeTexture( gl.TEXTURE1 );
-			gl.bindTexture( gl.TEXTURE_2D,    this.image.palette );
-			gl.uniform2fv( uniform.uTextSize, this.image.size );
-			gl.activeTexture( gl.TEXTURE0 );
+			gl.activeTexture(gl.TEXTURE1);
+			gl.bindTexture(gl.TEXTURE_2D, this.image.palette);
+			gl.uniform2fv(uniform.uTextSize, this.image.size);
+			gl.activeTexture(gl.TEXTURE0);
 		}
 
 		if (_usepal !== use_pal) {
-			gl.uniform1i(  uniform.uUsePal, _usepal = use_pal );
+			gl.uniform1i(uniform.uUsePal, _usepal = use_pal);
 		}
 
 		if (this.depth !== _depth) {
-			gl.uniform1f( uniform.uSpriteRendererDepth, _depth = this.depth);
+			gl.uniform1f(uniform.uSpriteRendererDepth, _depth = this.depth);
 		}
 
-		gl.uniform1f( uniform.uSpriteRendererZindex, this.zIndex++ );
+		gl.uniform1f(uniform.uSpriteRendererZindex, this.zIndex++);
 		// Rotate
 		if (this.angle !== _angle) {
 			_angle = this.angle;
 
 			mat4.identity(_matrix);
 			if (_angle) {
-				mat4.rotateZ( _matrix, _matrix, - _angle / 180 * Math.PI );
+				mat4.rotateZ(_matrix, _matrix, - _angle / 180 * Math.PI);
 			}
 
-			gl.uniformMatrix4fv( uniform.uSpriteRendererAngle, false, _matrix );
+			gl.uniformMatrix4fv(uniform.uSpriteRendererAngle, false, _matrix);
 		}
 
 		_offset[0] = this.offset[0] / 175.0 * this.xSize;
@@ -524,17 +576,17 @@ function(      WebGL,         glMatrix,      Camera )
 		_size[0]   = this.size[0]   / 175.0 * this.xSize;
 		_size[1]   = this.size[1]   / 175.0 * this.ySize;
 
-		gl.uniform4fv( uniform.uSpriteRendererColor,  this.color );
-		gl.uniform2fv( uniform.uSpriteRendererSize,   _size );
-		gl.uniform2fv( uniform.uSpriteRendererOffset, _offset );
-		gl.uniform1i( uniform.uIsRGBA, this.sprite.type)
+		gl.uniform4fv(uniform.uSpriteRendererColor, this.color);
+		gl.uniform2fv(uniform.uSpriteRendererSize, _size);
+		gl.uniform2fv(uniform.uSpriteRendererOffset, _offset);
+		gl.uniform1i(uniform.uIsRGBA, this.sprite.type);
 
 		// Avoid binding the new texture 150 times if it's the same.
 		if (_groupId !== _lastGroupId || _texture !== this.image.texture) {
 			_lastGroupId = _groupId;
-			gl.bindTexture( gl.TEXTURE_2D, _texture = this.image.texture );
+			gl.bindTexture(gl.TEXTURE_2D, _texture = this.image.texture);
 		}
-		gl.drawArrays( gl.TRIANGLE_STRIP, 0, 4 );
+		gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 	}
 
 
@@ -626,13 +678,13 @@ function(      WebGL,         glMatrix,      Camera )
 			}
 
 			// Insert into the canvas
-			ctx.putImageData( imageData, 0, 0, 0, 0, width, height);
+			ctx.putImageData(imageData, 0, 0, 0, 0, width, height);
 
 			// Render sprite in context
 			_ctx.save();
-			_ctx.translate( _x | 0, _y | 0 );
-			_ctx.rotate( this.angle / 180 * Math.PI );
-			_ctx.scale( scale_x, scale_y );
+			_ctx.translate(_x | 0, _y | 0);
+			_ctx.rotate(this.angle / 180 * Math.PI);
+			_ctx.scale(scale_x, scale_y);
 			_ctx.drawImage(
 				 canvas,
 				 0,              0,

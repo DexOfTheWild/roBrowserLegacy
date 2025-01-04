@@ -25,7 +25,7 @@
   z-index: 1;
   pointer-events: none;
   &.intro {
-    background: #2ec4e6;
+    background: $dark-bg;
     &::before {
       @include absolute-fill;
       content: "";
@@ -66,9 +66,8 @@
 }
 
 .main-canvas-overlay {
-  transition: background 20s ease;
-
   &.day {
+    transition: background 20s ease;
     background: rgba(205, 50, 50, 0);
   }
 
