@@ -3698,6 +3698,7 @@ define(function()
 		10250: "4_woodbox",
 		10251: "4_m_popfesta",
 		10252: "4_bonfire",
-		10253: "clear_npc"
+		10253: "clear_npc",
+		21303: "ep18_ashring"
 	};
 });
