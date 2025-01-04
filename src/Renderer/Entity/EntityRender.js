@@ -659,7 +659,7 @@ define(function (require) {
 		SpriteRenderer.image.texture = frame.texture;
 
 		// Draw Sprite
-		SpriteRenderer.render(isBlendModeOne);
+		SpriteRenderer.render(isBlendModeOne, type, this.objecttype);
 	}
 
 
