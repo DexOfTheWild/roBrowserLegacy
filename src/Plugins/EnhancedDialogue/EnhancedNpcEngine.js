@@ -54,9 +54,20 @@ define(function (require) {
         /**
          * Enhanced cutin handler
          */
-        function onCutin(pkt) {
-            // const _target = document.body;
-            if (!NpcBox.ui) {
+        async function onCutin(pkt) {
+            const waitForUI = async (timeout = 3000) => {
+                const startTime = Date.now();
+                while (!NpcBox.ui) {
+                    if (Date.now() - startTime > timeout) {
+                        return false;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                return true;
+            };
+
+            if (!await waitForUI()) {
+                console.warn('NpcBox.ui did not become available within timeout');
                 return;
             }
 
