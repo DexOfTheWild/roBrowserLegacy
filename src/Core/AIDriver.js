@@ -13,11 +13,11 @@ define(['Renderer/EntityManager', 'Renderer/Renderer', 'Vendors/fengari-web', 'R
 		
 		if(Session.homCustomAI){
 			code += `
-				dofile ("./AI/USER_AI/AI.lua")
+				dofile ("https://dex-ro.com/client/AI/USER_AI/AI.lua")
 			`;
 		} else {
 			code += `
-				dofile ("./AI/AI.lua")
+				dofile ("https://dex-ro.com/client/AI/AI.lua")
 			`;
 		}
 		
