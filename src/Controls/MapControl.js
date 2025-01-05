@@ -121,7 +121,8 @@ define(function( require )
 							EntityManager.setFocusEntity(null);
 						}
 					}
-
+					// write coordinates to users clipboard
+					navigator.clipboard.writeText(`${Mouse.world.x},${Mouse.world.y}`);
 					// Entity picking ?
 					if (entityOver) {
 						stop = stop || entityOver.onMouseDown();
@@ -186,6 +187,11 @@ define(function( require )
 					Cursor.setType( Cursor.ACTION.ROTATE );
 					Camera.rotate(true);
 				}
+				break;
+
+			case 2:
+				// write coordinates to users clipboard
+				navigator.clipboard.writeText(`${Mouse.world.x},${Mouse.world.y}`);
 				break;
 		}
 	}
