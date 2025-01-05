@@ -177,7 +177,8 @@ function createHTML(){
                                     packetver: 20131223,
                                     forceUseAddress: false,
                                     socketProxy: "wss://rathena.dex-ro.com:5999/",
-                                    packetKeys: false
+                                    packetKeys: false,
+                                    renewal: true
                                 },
                             ],
                             packetDump:  false,
@@ -200,7 +201,7 @@ function createHTML(){
 							enableBank: false,
 							enableMapName: false,
 							enableCheckAttendance: false,
-							CameraMaxZoomOut: 2,
+							CameraMaxZoomOut: 1,
                             loadLua: true,
                             ThirdPersonCamera: true
                         };
