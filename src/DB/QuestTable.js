@@ -37765,6 +37765,14 @@ define(function () {
             "Summary": "Obtain 60 Palm Oil Fruit from the palm trees and bring them to Lero.",
             "Title": "Help the old man!",
             "Description": ["Instead of climbing up the palm tree, you have an option to shake or kick it. For your own safety, try to wear a Safety Helmet while doing this task."]
+        },
+        // =================================================
+        // START CUSTOM
+        // =================================================
+        "90000": {
+            "Summary": "Coming soon.",
+            "Title": "First Day of Novice School",
+            "Description": ["Coming soon."]
         }
     }
 });
