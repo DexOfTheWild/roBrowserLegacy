@@ -61,22 +61,7 @@ function(       jQuery,         Texture,      DB,               Client )
 							ctx.drawImage( base_down, 0, base_up.height + base_mid.height );
 
 							jQuery('style:first').append([
-								'::-webkit-scrollbar { width: 13px; height: 12px; }',
-								'::-webkit-scrollbar-button:vertical:start:increment,',
-								'::-webkit-scrollbar-button:vertical:end:decrement { display: none;}',
-								'::-webkit-scrollbar-button:start:decrement,',
-								'::-webkit-scrollbar-button:end:increment { display: block; }',
-								'::-webkit-scrollbar-corner:vertical {display:none;}',
-								'::-webkit-scrollbar-resizer:vertical {display:none;}',
-								'::-webkit-scrollbar-button:vertical:increment { background-repeat:no-repeat; height:13px;}',
-								'::-webkit-scrollbar-button:vertical:decrement { background-repeat:no-repeat; height:12px;}',
-								'::-webkit-scrollbar-track-piece:vertical {background-repeat:repeat-y;}',
-								'::-webkit-scrollbar-thumb:vertical{border-color: transparent;border-width: 4px 0;min-height: 6px;}',
 
-								'::-webkit-scrollbar-button:vertical:increment { background-image: url('+ down +'); background-color: white;}',
-								'::-webkit-scrollbar-button:vertical:decrement { background-image: url('+ up + '); background-color: white;}',
-								'::-webkit-scrollbar-track-piece:vertical { background-image: url('+ mid +'); background-color: white;}',
-								'::-webkit-scrollbar-thumb:vertical{ -webkit-border-image: url('+ base.toDataURL() +') 4 0 4 0;}'
 							].join('\n'));
 
 							ScrollBar.complete = true;
