@@ -19,7 +19,6 @@ export const Inventory = ({ ...props }) => {
     <div id="Inventory">
       <div className="titlebar">
         <div className="left">
-          <button className="base"></button>
           <span className="text" data-text="106">Inventory</span>
         </div>
         <div className="right">
@@ -31,9 +30,11 @@ export const Inventory = ({ ...props }) => {
       <div className="panel">
         <div className="inventory-layout">
           <div className="tabs-column">
-            <button className="item"></button>
-            <button className="equip"></button>
-            <button className="etc"></button>
+            <div className="tabs">
+              <button className="item tab">Items</button>
+              <button className="equip tab">Equipment</button>
+              <button className="etc tab">Misc</button>
+            </div>
           </div>
           <div className="main-column">
             <div className="container">

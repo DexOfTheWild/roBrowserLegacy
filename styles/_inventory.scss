@@ -103,6 +103,7 @@ $grid-item-border: 0.125rem; // 2px
 @mixin background-image {
   background-repeat: no-repeat;
   background-color: transparent;
+  background-size: cover;
 }
 
 @mixin reset-button {
@@ -131,9 +132,9 @@ $grid-item-border: 0.125rem; // 2px
 
 #Inventory {
   // Container styles
-  // position: absolute;
-  // top: 100px;
-  // left: 100px;
+  position: absolute;
+  top: 100px;
+  left: 100px;
   max-width: $max-width;
   max-height: $max-height;
   width: $default-width;
@@ -145,7 +146,7 @@ $grid-item-border: 0.125rem; // 2px
   // Positioning and appearance
   top: $default-top;
   left: $default-left;
-  border-radius: $border-radius-md;
+  border-radius: $border-radius-lg;
   background: $bg-color;
 
   // Typography
@@ -245,6 +246,7 @@ $grid-item-border: 0.125rem; // 2px
 
   .content {
     @include flex-center;
+    align-items: flex-start;
     row-gap: $spacing-sm;
     flex-wrap: wrap;
     overflow: hidden;
@@ -256,12 +258,12 @@ $grid-item-border: 0.125rem; // 2px
   .inventory-grid {
     $item-border-radius: $spacing-xxs; // 2px
 
-    @include flexbox(row, flex-start, flex-start);
+    @include flexbox(row, center, flex-start);
     flex-wrap: wrap;
     flex-grow: 2;
 
     width: 100%;
-    max-height: $default-height - $titlebar-height - ($footer-height * 2);
+    max-height: 6rem;
     max-width: $max-width - ($icon-gap * 2);
 
     padding: $spacing-sm;
@@ -271,8 +273,8 @@ $grid-item-border: 0.125rem; // 2px
     .item {
       display: block;
       position: relative;
-      width: $item-size;
-      height: $item-size;
+      width: 37px;
+      height: 37px;
       outline: $grid-item-border solid $accent-color;
       border-radius: $item-border-radius;
 
@@ -281,10 +283,11 @@ $grid-item-border: 0.125rem; // 2px
       }
 
       .icon {
-        width: $item-size;
-        height: $item-size;
+        width: 37px;
+        height: 37px;
         border: none;
         @include background-image;
+        background-size: cover;
         border-radius: $item-border-radius;
       }
 

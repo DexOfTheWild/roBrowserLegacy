@@ -101,7 +101,7 @@ define(function(require)
 			.on('dragover', stopPropagation)
 
 		// Items event
-			.find('.container .content')
+			.find('.content .inventory-grid')
 				.on('mousewheel DOMMouseScroll', onScroll)
 				.on('mouseover',   '.item', onItemOver)
 				.on('mouseout',    '.item', onItemOut)
@@ -127,9 +127,9 @@ define(function(require)
 			this.ui.hide();
 		}
 
-		Client.loadFile( DB.INTERFACE_PATH + 'basic_interface/tab_itm_0'+ (_preferences.tab+1) +'.bmp', function(data){
-			Inventory.ui.find('.tabs').css('backgroundImage', 'url("' + data + '")');
-		});
+		// Client.loadFile( DB.INTERFACE_PATH + 'basic_interface/tab_itm_0'+ (_preferences.tab+1) +'.bmp', function(data){
+		// 	Inventory.ui.find('.tabs').css('backgroundImage', 'url("' + data + '")');
+		// });
 
 		this.resize( _preferences.width, _preferences.height );
 
@@ -153,7 +153,7 @@ define(function(require)
 	 */
 	Inventory.onRemove = function OnRemove()
 	{
-		this.ui.find('.container .content').empty();
+		this.ui.find('.content .inventory-grid').empty();
 		this.list.length = 0;
 		jQuery('.ItemInfo').remove();
 
@@ -209,14 +209,21 @@ define(function(require)
 		width  = Math.min( Math.max(width,  6), 9);
 		height = Math.min( Math.max(height, 2), 6);
 
-		this.ui.find('.container .content').css({
-			width:  width  * 32 + 13, // 13 = scrollbar
-			height: height * 32
-		});
+		// this.ui.find('.content .inventory-grid').css({
+		// 	width:  width  * 32 + 13, // 13 = scrollbar
+		// 	height: height * 32
+		// });
+
+		const newHeight = 31 + 19 + 32 + height * 32;
+		const newWidth = 23 + 16 + 16 + width * 32 + 13;
 
 		this.ui.css({
-			width:  23 + 16 + 16 + width  * 32,
-			height: 31 + 19      + height * 32
+			width: newWidth,
+			height: newHeight
+		});
+
+		this.ui.find('.inventory-grid').css({
+			maxHeight: newHeight - 31 - 19 - 32 - 20
 		});
 	};
 
@@ -248,10 +255,14 @@ define(function(require)
 	 * @param {number} index
 	 * @returns {Item}
 	 */
-	Inventory.getItemByIndex = function getItemByIndex( index )
+	Inventory.getItemByIndex = function getItemByIndex(index, tab = null)
 	{
 		var i, count;
 		var list = Inventory.list;
+
+		if (tab !== null) {
+			list = list.filter(item => this.getTabForItemType(item.type) === tab);
+		}
 
 		for (i = 0, count = list.length; i < count; ++i) {
 			if (list[i].index === index) {
@@ -271,21 +282,32 @@ define(function(require)
 	{
 		var i, count;
 
-		for (i = 0, count = items.length; i < count ; ++i) {
-			var object= this.getItemByIndex(items[i].index);
+		for (i = 0, count = items.length; i < count; ++i) {
+			var object = this.getItemByIndex(items[i]?.index);
 			if(object){
-				var item=this.removeItem(object.index,object.count);
+				this.removeItem(object.index, object.count);
 			}
-			if(this.addItemSub(items[i])){
+
+			if (this.addItemSub(items[i])) {
 				this.list.push(items[i]);
 				this.ui.find('.ncnt').text(this.list.length + Equipment.getUI().getNumber());
 				this.onUpdateItem(items[i].ITID, items[i].count ? items[i].count : 1);
-			}
-
-
+			} 
 		}
-
+		Inventory.calculateEmptySlots();
 	};
+
+	Inventory.calculateEmptySlots = function CalculateEmptySlots() {
+		const MAX_ITEMS = 30;
+
+		const tabItems = this.list.filter(item => this.getTabForItemType(item.type) === _preferences.tab);
+		const emptySlots = MAX_ITEMS - tabItems.length;
+		for (let i = 0; i < emptySlots; i++) {
+			this.ui.find('.inventory-grid').append(
+				`<div class="item" data-index="empty"></div>`
+			);
+		}
+	}
 
 
 	/**
@@ -309,40 +331,44 @@ define(function(require)
 			this.list.push(object);
 			this.ui.find('.ncnt').text(this.list.length + Equipment.getUI().getNumber());
 			this.onUpdateItem(object.ITID, object.count);
+			this.calculateEmptySlots();
 		}
 	};
 
+	/**
+	 * Get inventory tab for item type
+	 * @param {number} type - ItemType value
+	 * @returns {number} - Inventory tab constant
+	 */
+	Inventory.getTabForItemType = function GetTabForItemType(type) {
+		switch (type) {
+			case ItemType.HEALING:
+			case ItemType.USABLE:
+			case ItemType.USABLE_SKILL:
+			case ItemType.USABLE_UNK:
+				return Inventory.TAB.USABLE;
+
+			case ItemType.WEAPON:
+			case ItemType.EQUIP:
+			case ItemType.PETEGG:
+			case ItemType.PETEQUIP:
+				return Inventory.TAB.EQUIP;
+
+			default:
+			case ItemType.ETC:
+			case ItemType.CARD:
+			case ItemType.AMMO:
+				return Inventory.TAB.ETC;
+		}
+	};
 
 	/**
 	 * Add item to inventory
 	 *
 	 * @param {object} Item
 	 */
-	Inventory.addItemSub = function AddItemSub( item )
-	{
-		var tab;
-		switch (item.type) {
-			case ItemType.HEALING:
-			case ItemType.USABLE:
-			case ItemType.USABLE_SKILL:
-			case ItemType.USABLE_UNK:
-				tab = Inventory.TAB.USABLE;
-				break;
-
-			case ItemType.WEAPON:
-			case ItemType.EQUIP:
-			case ItemType.PETEGG:
-			case ItemType.PETEQUIP:
-				tab = Inventory.TAB.EQUIP;
-				break;
-
-			default:
-			case ItemType.ETC:
-			case ItemType.CARD:
-			case ItemType.AMMO:
-				tab = Inventory.TAB.ETC;
-				break;
-		}
+	Inventory.addItemSub = function AddItemSub(item) {
+		var tab = Inventory.getTabForItemType(item.type);
 
 		// Equip item (if not arrow)
 		if (item.WearState && item.type !== ItemType.AMMO && item.type !== ItemType.CARD) {
@@ -352,7 +378,7 @@ define(function(require)
 
 		if (tab === _preferences.tab) {
 			var it      = DB.getItemInfo( item.ITID );
-			var content = this.ui.find('.container .content');
+			var content = this.ui.find('.content .inventory-grid');
 
 			content.append(
 				'<div class="item" data-index="'+ item.index +'" draggable="true">' +
@@ -361,12 +387,12 @@ define(function(require)
 				'</div>'
 			);
 
-			if (content.height() < content[0].scrollHeight) {
-				this.ui.find('.hide').hide();
-			}
-			else {
-				this.ui.find('.hide').show();
-			}
+			// if (content.height() < content[0].scrollHeight) {
+			// 	this.ui.find('.hide').hide();
+			// }
+			// else {
+			// 	this.ui.find('.hide').show();
+			// }
 
 			Client.loadFile( DB.INTERFACE_PATH + 'item/' + ( item.IsIdentified ? it.identifiedResourceName : it.unidentifiedResourceName ) + '.bmp', function(data){
 				content.find('.item[data-index="'+ item.index +'"] .icon').css('backgroundImage', 'url('+ data +')');
@@ -408,11 +434,11 @@ define(function(require)
 		this.ui.find('.ncnt').text(this.list.length + Equipment.getUI().getNumber());
 		this.onUpdateItem(item.ITID, 0);
 
-		var content = this.ui.find('.container .content');
-		if (content.height() === content[0].scrollHeight) {
-			this.ui.find('.hide').show();
-		}
-
+		// var content = this.ui.find('.content .inventory-grid');
+		// if (content.height() === content[0].scrollHeight) {
+		// 	this.ui.find('.hide').show();
+		// }
+		this.calculateEmptySlots();
 		return item;
 	};
 
@@ -445,11 +471,7 @@ define(function(require)
 		this.ui.find('.item[data-index="'+ item.index +'"]').remove();
 		this.ui.find('.ncnt').text(this.list.length + Equipment.getUI().getNumber());
 		this.onUpdateItem(item.ITID, 0);
-
-		var content = this.ui.find('.container .content');
-		if (content.height() === content[0].scrollHeight) {
-			this.ui.find('.hide').show();
-		}
+		this.calculateEmptySlots();
 	};
 
 
@@ -508,7 +530,7 @@ define(function(require)
 	function onResize()
 	{
 		var ui      = Inventory.ui;
-		var content = ui.find('.container .content');
+		var content = ui.find('.content .inventory-grid');
 		var hide    = ui.find('.hide');
 		var top     = ui.position().top;
 		var left    = ui.position().left;
@@ -537,12 +559,12 @@ define(function(require)
 			lastHeight = h;
 
 			//Show or hide scrollbar
-			if (content.height() === content[0].scrollHeight) {
-				hide.show();
-			}
-			else {
-				hide.hide();
-			}
+			// if (content.height() === content[0].scrollHeight) {
+			// 	hide.show();
+			// }
+			// else {
+			// 	hide.hide();
+			// }
 		}
 
 		// Start resizing
@@ -565,11 +587,7 @@ define(function(require)
 	{
 		var idx          = jQuery(this).index();
 		_preferences.tab = parseInt(idx, 10);
-
-		Client.loadFile(DB.INTERFACE_PATH + 'basic_interface/tab_itm_0'+ (idx+1) +'.bmp', function(data){
-			Inventory.ui.find('.tabs').css('backgroundImage', 'url(' + data + ')');
-			requestFilter();
-		});
+		requestFilter();
 	}
 
 
@@ -598,7 +616,7 @@ define(function(require)
 	 */
 	function requestFilter()
 	{
-		Inventory.ui.find('.container .content').empty();
+		Inventory.ui.find('.content .inventory-grid').empty();
 
 		var list = Inventory.list;
 		var i, count;
@@ -606,6 +624,7 @@ define(function(require)
 		for (i = 0, count = list.length; i < count; ++i) {
 			Inventory.addItemSub( list[i] );
 		}
+		Inventory.calculateEmptySlots();
 	}
 
 
