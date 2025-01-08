@@ -129,23 +129,41 @@ define( ['Utils/WebGL'], function( WebGL )
 
 		uniform float uOpacity;
 
+		// Add color enhancement functions
+		vec3 saturate(vec3 color, float adjustment) {
+			float maxVal = max(max(color.r, color.g), color.b);
+			float minVal = min(min(color.r, color.g), color.b);
+			vec3 adjusted = (color - mix(vec3(minVal), vec3(maxVal), 0.5)) * adjustment + color;
+			return clamp(adjusted, 0.0, 1.0);
+		}
+
+		vec3 enhanceColor(vec3 color) {
+			// Increase saturation and add a slight blue tint for water
+			vec3 saturated = saturate(color, 1.2);
+			vec3 tinted = mix(saturated, vec3(0.4, 0.6, 1.0), 0.05);
+
+			// Add some brightness while preserving water transparency
+			return tinted * 1.15;
+		}
+
 		void main(void) {
-			
-			vec4 texture = texture2D( uDiffuse,  vTextureCoord.st );
+			vec4 texture = texture2D(uDiffuse, vTextureCoord.st);
 			texture.a = uOpacity;
 			
 			if (texture.a == 0.0) {
 				discard;
 			}
 			
+			// Apply color enhancement
+			texture.rgb = enhanceColor(texture.rgb);
 			texture.a *= uOpacity;
 			
-			gl_FragColor   = texture;
+			gl_FragColor = texture;
 
 			if (uFogUse) {
-				float depth     = gl_FragCoord.z / gl_FragCoord.w;
-				float fogFactor = smoothstep( uFogNear, uFogFar, depth );
-				gl_FragColor    = mix( gl_FragColor, vec4( uFogColor, gl_FragColor.w ), fogFactor );
+				float depth = gl_FragCoord.z / gl_FragCoord.w;
+				float fogFactor = smoothstep(uFogNear, uFogFar, depth);
+				gl_FragColor = mix(gl_FragColor, vec4(uFogColor, gl_FragColor.w), fogFactor);
 			}
 		}
 	`;

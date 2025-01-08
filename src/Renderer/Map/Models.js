@@ -89,24 +89,40 @@ define( ['Utils/WebGL'], function( WebGL )
 		uniform vec3  uLightDiffuse;
 		uniform float uLightOpacity;
 
+		// Add color enhancement functions
+		vec3 saturate(vec3 color, float adjustment) {
+			float maxVal = max(max(color.r, color.g), color.b);
+			float minVal = min(min(color.r, color.g), color.b);
+			vec3 adjusted = (color - mix(vec3(minVal), vec3(maxVal), 0.5)) * adjustment + color;
+			return clamp(adjusted, 0.0, 1.0);
+		}
+
+		vec3 enhanceColor(vec3 color) {
+			// Increase saturation and add slight brightness boost
+			vec3 saturated = saturate(color, 0.5);
+			return saturated * 1.0;
+		}
+
 		void main(void) {
-			vec4 texture  = texture2D( uDiffuse,  vTextureCoord.st );
+			vec4 texture = texture2D(uDiffuse, vTextureCoord.st);
 
 			if (texture.a == 0.0) {
 				discard;
 			}
 
-			vec3 Ambient    = uLightAmbient * uLightOpacity;
-			vec3 Diffuse    = uLightDiffuse * vLightWeighting;
-			vec4 LightColor = vec4( Ambient + Diffuse, 1.0);
+			vec3 Ambient = uLightAmbient * uLightOpacity;
+			vec3 Diffuse = uLightDiffuse * vLightWeighting;
+			vec4 LightColor = vec4(Ambient + Diffuse, 1.0);
 
-			gl_FragColor    = texture * clamp(LightColor, 0.0, 1.0);
+			// Apply color enhancement
+			vec3 enhancedColor = enhanceColor(texture.rgb);
+			gl_FragColor = vec4(enhancedColor, texture.a) * clamp(LightColor, 0.0, 1.0);
 			gl_FragColor.a *= vAlpha;
 
 			if (uFogUse) {
-				float depth     = gl_FragCoord.z / gl_FragCoord.w;
-				float fogFactor = smoothstep( uFogNear, uFogFar, depth );
-				gl_FragColor    = mix( gl_FragColor, vec4( uFogColor, gl_FragColor.w ), fogFactor );
+				float depth = gl_FragCoord.z / gl_FragCoord.w;
+				float fogFactor = smoothstep(uFogNear, uFogFar, depth);
+				gl_FragColor = mix(gl_FragColor, vec4(uFogColor, gl_FragColor.w), fogFactor);
 			}
 		}
 	`;

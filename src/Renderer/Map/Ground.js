@@ -122,7 +122,7 @@ function(      WebGL,         Texture,   Preferences )
 	var _fragmentShader = `
 		#version 100
 		#pragma vscode_glsllint_stage : frag
-			precision highp float;
+		precision highp float;
 
 		varying vec2 vTextureCoord;
 		varying vec2 vLightmapCoord;
@@ -147,9 +147,25 @@ function(      WebGL,         Texture,   Preferences )
 
 		uniform float uEffectStrength;
 
-		void main(void) {
+		// Add color enhancement functions
+		vec3 saturate(vec3 color, float adjustment) {
+			// Convert to HSL-like space
+			float maxVal = max(max(color.r, color.g), color.b);
+			float minVal = min(min(color.r, color.g), color.b);
+			vec3 adjusted = (color - mix(vec3(minVal), vec3(maxVal), 0.5)) * adjustment + color;
+			return clamp(adjusted, 0.0, 1.0);
+		}
 
-			vec4 texture = texture2D( uDiffuse,  vTextureCoord.st );
+		vec3 enhanceColor(vec3 color) {
+			// Increase saturation
+			vec3 saturated = saturate(color, 0.5);
+
+			// Slightly boost brightness while preserving contrast
+			return saturated * 1.0;
+		}
+
+		void main(void) {
+			vec4 texture = texture2D(uDiffuse, vTextureCoord.st);
 			float lightWeight = 1.0;
 
 			if (texture.a == 0.0) {
@@ -157,33 +173,37 @@ function(      WebGL,         Texture,   Preferences )
 			}
 
 			if (vTileColorCoord.st != vec2(0.0,0.0)) {
-				texture    *= texture2D( uTileColor, vTileColorCoord.st);
+				texture *= texture2D(uTileColor, vTileColorCoord.st);
 				lightWeight = vLightWeighting;
 			}
 
-			vec3 Ambient    = uLightAmbient * uLightOpacity;
-			vec3 Diffuse    = uLightDiffuse * lightWeight;
+			vec3 Ambient = uLightAmbient * uLightOpacity;
+			vec3 Diffuse = uLightDiffuse * lightWeight;
 
 			vec3 customEffect = vec3(vCustomValue * uEffectStrength);
 
 			if (uLightMapUse) {
-				vec4 lightmap   = texture2D( uLightmap, vLightmapCoord.st);
-				vec4 LightColor = vec4( (Ambient + Diffuse) * lightmap.a, 1.0);
-				vec4 ColorMap   = vec4( lightmap.rgb, 0.0 );
+				vec4 lightmap = texture2D(uLightmap, vLightmapCoord.st);
+				vec4 LightColor = vec4((Ambient + Diffuse) * lightmap.a, 1.0);
+				vec4 ColorMap = vec4(lightmap.rgb, 0.0);
 
-				gl_FragColor    = texture * clamp(LightColor, 0.0, 1.0) + ColorMap;
+				// Apply color enhancement
+				vec3 enhancedColor = enhanceColor(texture.rgb);
+				gl_FragColor = vec4(enhancedColor, texture.a) * clamp(LightColor, 0.0, 1.0) + ColorMap;
 				gl_FragColor.rgb += customEffect;
 			}
 			else {
-				vec4 LightColor = vec4( Ambient + Diffuse, 1.0);
-				gl_FragColor    = texture * clamp(LightColor, 0.0, 1.0);
-				gl_FragColor.rgb += customEffect;
+					vec4 LightColor = vec4(Ambient + Diffuse, 1.0);
+					// Apply color enhancement
+					vec3 enhancedColor = enhanceColor(texture.rgb);
+					gl_FragColor = vec4(enhancedColor, texture.a) * clamp(LightColor, 0.0, 1.0);
+					gl_FragColor.rgb += customEffect;
 			}
 
 			if (uFogUse) {
-				float depth     = gl_FragCoord.z / gl_FragCoord.w;
-				float fogFactor = smoothstep( uFogNear, uFogFar, depth );
-				gl_FragColor    = mix( gl_FragColor, vec4( uFogColor, gl_FragColor.w ), fogFactor );
+				float depth = gl_FragCoord.z / gl_FragCoord.w;
+				float fogFactor = smoothstep(uFogNear, uFogFar, depth);
+				gl_FragColor = mix(gl_FragColor, vec4(uFogColor, gl_FragColor.w), fogFactor);
 			}
 		}
 	`;

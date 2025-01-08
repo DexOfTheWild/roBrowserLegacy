@@ -112,6 +112,24 @@ function(      WebGL,         glMatrix,      Camera )
 		uniform bool uIsRGBA;
 		uniform bool uIsShadowPass;
 
+		// Add color enhancement functions (similar to Ground shader)
+		vec3 saturate(vec3 color, float adjustment) {
+			float maxVal = max(max(color.r, color.g), color.b);
+			float minVal = min(min(color.r, color.g), color.b);
+			vec3 adjusted = (color - mix(vec3(minVal), vec3(maxVal), 0.5)) * adjustment + color;
+			return clamp(adjusted, 0.0, 1.0);
+		}
+
+		vec3 enhanceColor(vec3 color) {
+			// Very subtle saturation adjustment to maintain natural colors
+			vec3 saturated = saturate(color, 0.1);
+
+			// Apply a slight contrast adjustment instead of direct saturation
+			vec3 enhanced = mix(saturated, vec3(0.5), -0.02);  // Tiny pull from gray
+
+			return enhanced;
+		}
+
 		// With palette we don't have a good result because of the gl.NEAREST, so smooth it.
 		vec4 bilinearSample(vec2 uv, sampler2D indexT, sampler2D LUT) {
 			vec2 TextInterval = 1.0 / uTextSize;
@@ -121,38 +139,36 @@ function(      WebGL,         glMatrix,      Camera )
 			float blLUT = texture2D(indexT, uv + vec2(0.0, TextInterval.y)).x;
 			float brLUT = texture2D(indexT, uv + TextInterval).x;
 
-			vec4 transparent = vec4( 0.0, 0.0, 0.0, 0.0);
+			vec4 transparent = vec4(0.0, 0.0, 0.0, 0.0);
 
-			vec4 tl = tlLUT == 0.0 ? transparent : vec4( texture2D(LUT, vec2(tlLUT,1.0)).rgb, 1.0);
-			vec4 tr = trLUT == 0.0 ? transparent : vec4( texture2D(LUT, vec2(trLUT,1.0)).rgb, 1.0);
-			vec4 bl = blLUT == 0.0 ? transparent : vec4( texture2D(LUT, vec2(blLUT,1.0)).rgb, 1.0);
-			vec4 br = brLUT == 0.0 ? transparent : vec4( texture2D(LUT, vec2(brLUT,1.0)).rgb, 1.0);
+			vec4 tl = tlLUT == 0.0 ? transparent : vec4(texture2D(LUT, vec2(tlLUT,1.0)).rgb, 1.0);
+			vec4 tr = trLUT == 0.0 ? transparent : vec4(texture2D(LUT, vec2(trLUT,1.0)).rgb, 1.0);
+			vec4 bl = blLUT == 0.0 ? transparent : vec4(texture2D(LUT, vec2(blLUT,1.0)).rgb, 1.0);
+			vec4 br = brLUT == 0.0 ? transparent : vec4(texture2D(LUT, vec2(brLUT,1.0)).rgb, 1.0);
 
-			vec2 f  = fract( uv.xy * uTextSize );
-			vec4 tA = mix( tl, tr, f.x );
-			vec4 tB = mix( bl, br, f.x );
+			vec2 f = fract(uv.xy * uTextSize);
+			vec4 tA = mix(tl, tr, f.x);
+			vec4 tB = mix(bl, br, f.x);
 
-			return mix( tA, tB, f.y );
+			return mix(tA, tB, f.y);
 		}
 
 		vec4 blur(sampler2D tex, vec2 uv, vec2 resolution) {
-				vec4 color = vec4(0.0);
-				float blur = 3.0;
+			vec4 color = vec4(0.0);
+			float blur = 3.0;
 
-				// 9-tap gaussian blur
-				for (float x = -1.0; x <= 1.0; x += 1.0) {
-						for (float y = -1.0; y <= 1.0; y += 1.0) {
-								vec2 offset = vec2(x, y) * blur / resolution;
-								color += texture2D(tex, uv + offset);
-						}
+			// 9-tap gaussian blur
+			for (float x = -1.0; x <= 1.0; x += 1.0) {
+				for (float y = -1.0; y <= 1.0; y += 1.0) {
+					vec2 offset = vec2(x, y) * blur / resolution;
+					color += texture2D(tex, uv + offset);
 				}
+			}
 
-				return color / 9.0;
+			return color / 9.0;
 		}
 
-
 		void main(void) {
-
 			// Don't render if it's not shown.
 			if (uSpriteRendererColor.a == 0.0) {
 				discard;
@@ -161,19 +177,25 @@ function(      WebGL,         glMatrix,      Camera )
 			// Calculate texture
 			vec4 texture;
 			if (uUsePal) {
-				texture = bilinearSample( vTextureCoord, uDiffuse, uPalette );
+				texture = bilinearSample(vTextureCoord, uDiffuse, uPalette);
 			}
 			else {
-				texture = texture2D( uDiffuse, vTextureCoord.st );
+				texture = texture2D(uDiffuse, vTextureCoord.st);
 			}
 
 			// No alpha, skip.
-			if ( texture.a == 0.0 )
+			if (texture.a == 0.0)
 				discard;
 
 			// Apply shadow, apply color
-			texture.rgb   *= uShadow;
-			gl_FragColor   = texture * uSpriteRendererColor;
+			texture.rgb *= uShadow;
+
+			// Enhance colors (skip for shadow pass)
+			if (!uIsShadowPass) {
+				texture.rgb = enhanceColor(texture.rgb);
+			}
+
+			gl_FragColor = texture * uSpriteRendererColor;
 
 			if (uIsShadowPass) {
 				// Apply blur for shadow pass
@@ -182,9 +204,9 @@ function(      WebGL,         glMatrix,      Camera )
 
 			// Fog feature
 			if (uFogUse) {
-				float depth     = gl_FragCoord.z / gl_FragCoord.w;
-				float fogFactor = smoothstep( uFogNear, uFogFar, depth );
-				gl_FragColor    = mix( gl_FragColor, vec4( uFogColor, gl_FragColor.w ), fogFactor );
+				float depth = gl_FragCoord.z / gl_FragCoord.w;
+				float fogFactor = smoothstep(uFogNear, uFogFar, depth);
+				gl_FragColor = mix(gl_FragColor, vec4(uFogColor, gl_FragColor.w), fogFactor);
 			}
 		}
 	`;
