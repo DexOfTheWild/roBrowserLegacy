@@ -10,6 +10,7 @@ final class Debug
 {
 	static private $messages = array();
 	static private $actived  = false;
+	static private $logFile = 'debug.log';
 
 
 	/**
@@ -21,6 +22,12 @@ final class Debug
 	static public function write($message, $class='')
 	{
 		self::$messages[] = '<div class="'.$class.'">'. $message . '</div>';
+		
+		if (self::$actived) {
+			$timestamp = date('Y-m-d H:i:s');
+			$logMessage = "[$timestamp][$class] $message\n";
+			error_log($logMessage, 3, self::$logFile);
+		}
 	}
 
 

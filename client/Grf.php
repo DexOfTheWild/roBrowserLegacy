@@ -147,7 +147,7 @@ class Grf
 
 		// File not found
 		if ($position === false) {
-			Debug::write('File not found in '. $this->filename);
+			// Debug::write('File not found in '. $this->filename);
 			return false;
 		}
 
@@ -165,7 +165,7 @@ class Grf
 		fseek( $this->fp, $fileInfo['position'] + self::HEADER_SIZE, SEEK_SET );
 		$content = gzuncompress( fread($this->fp, $fileInfo['pack_size']), $fileInfo['real_size'] );
 
-		Debug::write('File found and extracted from '. $this->filename, 'success');
+		Debug::write('File found and extracted' . $filename . ' from '. $this->filename, 'success');
 		return true;
 	}
 

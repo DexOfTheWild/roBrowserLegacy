@@ -60,13 +60,13 @@
 	$directory = basename(dirname(__FILE__));
 
 	// Check Allowed directory
-	if (!preg_match( '/\/('. $directory . '\/)?(data|BGM)\//', $path)) {
+	if (!preg_match( '/\/('. $directory . '\/)?(data|BGM|resources)\//', $path)) {
 		Debug::write('Forbidden directory, you can just access files located in data and BGM folder.', 'error');
 		Debug::output();
 	}
 
 	// Get file
-	$path = preg_replace('/(.*('. $directory . '\/)?)(data|BGM\/.*)/', '$3', $path );
+	$path = preg_replace('/(.*('. $directory . '\/)?)(data|BGM|resources\/.*)/', '$3', $path );
 	$path = str_replace('/', '\\', $path);
 	$ext  = strtolower(pathinfo($path, PATHINFO_EXTENSION));
 	$file = Client::getFile($path);
@@ -74,11 +74,11 @@
 
 	// File not found, end.
 	if ($file === false) {
-		Debug::write('Failed, file not found...', 'error');
+		Debug::write('Failed. File not found anywhere...', 'error');
 		Debug::output();
 	}
 	else {
-		Debug::write('Success !', 'success');
+		// Debug::write('Success !', 'success');
 	}
 
 

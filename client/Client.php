@@ -72,12 +72,12 @@ final class Client
 		$grfs = $data_ini[ $keys[$index] ];
 		ksort($grfs);
 
-		Debug::write('File ' . $path . ' loaded.', 'success');
-		Debug::write('GRFs to use :', 'info');
+		// Debug::write('File ' . $path . ' loaded.', 'success');
+		// Debug::write('GRFs to use :', 'info');
 
 		// Open GRFs files
 		foreach ($grfs as $index => $grf_filename) {
-			Debug::write($index . ') ' . $info['dirname'] . '/' . $grf_filename);
+			// Debug::write($index . ') ' . $info['dirname'] . '/' . $grf_filename);
 
 			self::$grfs[$index] = new Grf($info['dirname'] . '/' . $grf_filename);
 			self::$grfs[$index]->filename = $grf_filename;
@@ -103,7 +103,7 @@ final class Client
 
 		// Read data first
 		if (file_exists($local_pathEncoded) && !is_dir($local_pathEncoded) && is_readable($local_pathEncoded)) {
-			Debug::write('File found at ' . $local_path, 'success');
+			Debug::write('File found in filesystem at ' . $local_path, 'success');
 
 			// Store file
 			if(self::$AutoExtract) {
@@ -120,7 +120,7 @@ final class Client
 
 			// Load GRF just if needed
 			if (!$grf->loaded) {
-				Debug::write('Loading GRF: ' . $grf->filename, 'info');
+				// Debug::write('Loading GRF: ' . $grf->filename, 'info');
 				$grf->load();
 			}
 

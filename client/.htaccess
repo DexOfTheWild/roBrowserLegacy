@@ -12,7 +12,7 @@ ErrorDocument 404 /client/index.php
 
 
 # Uncomment the line below if it does not cause error
-#Options -Indexes
+Options -Indexes
 
 #------------------------------------------
 # /!\ Edit this part at your own risk !
