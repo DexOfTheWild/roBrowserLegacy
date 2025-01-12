@@ -132,25 +132,32 @@ function(      WebGL,         glMatrix,      Camera )
 
 		// With palette we don't have a good result because of the gl.NEAREST, so smooth it.
 		vec4 bilinearSample(vec2 uv, sampler2D indexT, sampler2D LUT) {
-			vec2 TextInterval = 1.0 / uTextSize;
+			vec2 textureSize = uTextSize;
+			vec2 texelSize = 1.0 / textureSize;
 
-			float tlLUT = texture2D(indexT, uv ).x;
-			float trLUT = texture2D(indexT, uv + vec2(TextInterval.x, 0.0)).x;
-			float blLUT = texture2D(indexT, uv + vec2(0.0, TextInterval.y)).x;
-			float brLUT = texture2D(indexT, uv + TextInterval).x;
+			// Add subpixel precision
+			vec2 texelCoord = uv * textureSize - 0.5;
+			vec2 f = fract(texelCoord);
+			vec2 baseTexCoord = (floor(texelCoord) + 0.5) * texelSize;
 
-			vec4 transparent = vec4(0.0, 0.0, 0.0, 0.0);
+			// Sample with improved precision
+			float tlLUT = texture2D(indexT, baseTexCoord).x;
+			float trLUT = texture2D(indexT, baseTexCoord + vec2(texelSize.x, 0.0)).x;
+			float blLUT = texture2D(indexT, baseTexCoord + vec2(0.0, texelSize.y)).x;
+			float brLUT = texture2D(indexT, baseTexCoord + texelSize).x;
 
+			vec4 transparent = vec4(0.0);
 			vec4 tl = tlLUT == 0.0 ? transparent : vec4(texture2D(LUT, vec2(tlLUT,1.0)).rgb, 1.0);
 			vec4 tr = trLUT == 0.0 ? transparent : vec4(texture2D(LUT, vec2(trLUT,1.0)).rgb, 1.0);
 			vec4 bl = blLUT == 0.0 ? transparent : vec4(texture2D(LUT, vec2(blLUT,1.0)).rgb, 1.0);
 			vec4 br = brLUT == 0.0 ? transparent : vec4(texture2D(LUT, vec2(brLUT,1.0)).rgb, 1.0);
 
-			vec2 f = fract(uv.xy * uTextSize);
-			vec4 tA = mix(tl, tr, f.x);
-			vec4 tB = mix(bl, br, f.x);
-
-			return mix(tA, tB, f.y);
+			// Improved bilinear interpolation
+			return mix(
+				mix(tl, tr, smoothstep(0.0, 1.0, f.x)),
+				mix(bl, br, smoothstep(0.0, 1.0, f.x)),
+				smoothstep(0.0, 1.0, f.y)
+			);
 		}
 
 		vec4 blur(sampler2D tex, vec2 uv, vec2 resolution) {
