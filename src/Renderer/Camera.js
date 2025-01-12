@@ -299,12 +299,12 @@ define(function( require )
 		this.currentMap = getModule('Renderer/MapRenderer').currentMap;
 
 		if (DB.isIndoor(this.currentMap)) {
-			this.zoomFinal = Preferences.indoorZoom || 125;
+			this.zoomFinal = Preferences.indoorZoom || 60;
 			this.angleFinal[0] = 230;
 			this.angleFinal[1] = -40;
 			this.enable3RDPerson = false;
 		} else {
-			this.zoomFinal = Preferences.zoom || 125;
+			this.zoomFinal = Preferences.zoom || 60;
 		}
 
 		//this.updateState();
