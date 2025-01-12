@@ -197,30 +197,30 @@ define( ['Utils/BinaryReader'], function( BinaryReader )
 		var i, count = this.indexed_count;
 		var data, width, height, x, y;
 		var out, pal = this.palette;
-		var idx1, idx2;
 
 		for (i = 0; i < count; ++i) {
-			// Avoid look up
-			frame  = frames[i];
-
+			frame = frames[i];
 			if (frame.type !== SPR.TYPE_PAL) {
 				continue;
 			}
 
-			data   = frame.data;
-			width  = frame.width;
+			data = frame.data;
+			width = frame.width;
 			height = frame.height;
-			out    = new Uint8Array( width * height * 4 );
+			out = new Uint8Array(width * height * 4);
 
-			// reverse height
-			for ( y=0; y<height; ++y ) {
-				for ( x = 0; x<width; ++x ) {
-					idx1 = data[ x + y * width ] * 4;
-					idx2 = ( x + (height-y-1) * width ) * 4;
-					out[ idx2 + 3 ] = pal[ idx1 + 0 ];
-					out[ idx2 + 2 ] = pal[ idx1 + 1 ];
-					out[ idx2 + 1 ] = pal[ idx1 + 2 ];
-					out[ idx2 + 0 ] = idx1 ? 255  : 0;
+			// Enhanced color conversion with gamma correction
+			const gamma = 2.2;
+			for (y = 0; y < height; ++y) {
+				for (x = 0; x < width; ++x) {
+					var idx1 = data[x + y * width] * 4;
+					var idx2 = (x + (height - y - 1) * width) * 4;
+
+					// Apply gamma correction for better color accuracy
+					out[idx2 + 3] = pal[idx1 + 0];
+					out[idx2 + 2] = Math.pow(pal[idx1 + 1] / 255, gamma) * 255;
+					out[idx2 + 1] = Math.pow(pal[idx1 + 2] / 255, gamma) * 255;
+					out[idx2 + 0] = idx1 ? 255 : 0;
 				}
 			}
 
@@ -228,9 +228,9 @@ define( ['Utils/BinaryReader'], function( BinaryReader )
 			frame.type = SPR.TYPE_RGBA;
 		}
 
-		this.indexed_count  = 0;
-		this.rgba_count     = frames.length;
-		this.rgba_index     = 0;
+		this.indexed_count = 0;
+		this.rgba_count = frames.length;
+		this.rgba_index = 0;
 	};
 
 
