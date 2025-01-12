@@ -146,16 +146,6 @@ define(function( require )
 				_rightClickPosition[0] = Mouse.screen.x;
 				_rightClickPosition[1] = Mouse.screen.y;
 
-				// If entity is a mob, handle targeting
-				if (entityOver === Session.Entity) {
-					if (entityFocus) {
-						entityFocus.onFocusEnd();
-					}
-					entityOver.onFocus();
-					EntityManager.setFocusEntity(entityOver);
-					return false;
-				}
-
 				// Original camera rotation logic
 				if (!KEYS.SHIFT && KEYS.ALT && !KEYS.CTRL) {
 					Cursor.setType( Cursor.ACTION.ROTATE );
@@ -235,14 +225,20 @@ define(function( require )
 
 			// Right Click
 			case 3:
-
+				entity = EntityManager.getOverEntity();
 				// Seems like it's how the official client handle the contextmenu
 				// Just check for the same position on mousedown and mouseup
 				if (_rightClickPosition[0] === Mouse.screen.x && _rightClickPosition[1] === Mouse.screen.y && !KEYS.SHIFT) {
-					entity = EntityManager.getOverEntity();
-
 					if (entity && entity !== Session.Entity) {
 						entity.onContextMenu();
+					}
+					if (entity === Session.Entity) {
+						var entityFocus = EntityManager.getFocusEntity();
+						if (entityFocus) {
+							entityFocus.onFocusEnd();
+						}
+						entity.onFocus();
+						EntityManager.setFocusEntity(entity);
 					}
 				}
 
