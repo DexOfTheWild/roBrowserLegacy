@@ -61,10 +61,14 @@ function(      WebGL,         glMatrix,      Camera )
 			mat[3].z += (mat[0].z * x + mat[1].z * y + mat[2].z * z) + (uCameraLatitude * floor(min(uCameraZoom, 1.0)) / 50.0);
 			mat[3].w += mat[0].w * x + mat[1].w * y + mat[2].w * z;
 			
-			// Spherical billboard
-			mat[0].xyz = vec3( 1.0, 0.0, 0.0 );
-			mat[1].xyz = vec3( 0.0, 1.0, 0.0 );
-			mat[2].xyz = vec3( 0.0, 0.0, 1.0 );
+			// Half billboard - only around Y axis
+			// Keep the original up vector (Y)
+			vec3 originalUp = mat[1].xyz;
+
+			// Reset only the X and Z components for horizontal rotation
+			mat[0].xyz = vec3( 1.0, 0.0, 0.0 );   // right vector (negated X)
+			mat[2].xyz = vec3( 0.0, 0.0, 1.0 );    // forward vector (positive Z)
+			mat[1].xyz = -originalUp;                // preserve original up vector (not negated)
 			
 			return mat;
 		}
