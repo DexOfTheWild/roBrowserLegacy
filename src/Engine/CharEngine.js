@@ -120,7 +120,7 @@ define(function( require )
 			UIManager.removeComponents();
 			init( _server );
 		// });
-		document.querySelector('#MainCanvasOverlay').classList.add('intro');
+		document.querySelector('#MainCanvasOverlay').classList.add('start-screen');
 	}
 
 

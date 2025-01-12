@@ -107,7 +107,7 @@ define(function( require )
 		q.add(function(){
 			DB.onReady = function(){
 				// Background.setImage( 'bgi_temp.bmp'); // remove loading
-				document.querySelector('#MainCanvasOverlay').classList.add('intro');
+				document.querySelector('#MainCanvasOverlay').classList.add('start-screen');
 
 				q._next();
 			};
@@ -120,7 +120,7 @@ define(function( require )
 			// Background.setImage( 'bgi_temp.bmp', function(){
 			// 	DB.init();
 			// });
-			document.querySelector('#MainCanvasOverlay').classList.add('intro');
+			document.querySelector('#MainCanvasOverlay').classList.add('start-screen');
 			DB.init();
 		});
 
@@ -164,7 +164,7 @@ define(function( require )
 		// Background.init();
 		// Background.resize( Renderer.width, Renderer.height );
 		// Background.setImage( 'bgi_temp.bmp', function(){
-		document.querySelector('#MainCanvasOverlay').classList.add('intro');
+		document.querySelector('#MainCanvasOverlay').classList.add('start-screen');
 
 			// Display server list
 			var list = new Array( _servers.length );
@@ -225,7 +225,7 @@ define(function( require )
 		Renderer.stop();
 		UIManager.removeComponents();
 		Background.remove(init);
-		document.querySelector('#MainCanvasOverlay').classList.remove('intro');
+		document.querySelector('#MainCanvasOverlay').classList.remove('start-screen');
 	}
 
 
