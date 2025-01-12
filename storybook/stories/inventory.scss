@@ -1,6 +1,11 @@
+
 // ==============================
 // Variables
 // ==============================
+
+$dark-bg: #2e2e2e;
+$dark-bg-light: #393939;
+
 
 // Base font size (browser default is typically 16px)
 $root-font-size: 16px;
@@ -54,7 +59,7 @@ $footer-height: $spacing-xl; // 24px
 $font-size-xs: 0.6875rem; // 11px
 $font-size-sm: 0.75rem; // 12px
 $font-size-md: 1.25rem; // 20px
-$font-family: "Plus Jakarta Sans", sans-serif;
+$font-family: "Almendra SC", serif;
 
 // Positioning
 $default-top: 6.25rem; // 100px
@@ -103,6 +108,7 @@ $grid-item-border: 0.125rem; // 2px
 @mixin background-image {
   background-repeat: no-repeat;
   background-color: transparent;
+  background-size: cover;
 }
 
 @mixin reset-button {
@@ -145,8 +151,9 @@ $grid-item-border: 0.125rem; // 2px
   // Positioning and appearance
   top: $default-top;
   left: $default-left;
-  border-radius: $border-radius-md;
-  background: $bg-color;
+  border-radius: $border-radius-lg;
+  background: $dark-bg;
+  box-shadow: 3px 3px 2px 0 rgba(darken($dark-bg, 5), 0.5);
 
   // Typography
   font-family: $font-family;
@@ -177,6 +184,13 @@ $grid-item-border: 0.125rem; // 2px
     .text {
       white-space: nowrap;
       line-height: 2rem;
+      img {
+        position:absolute;
+        width: 100%;
+        height: auto;
+        top: -35px;
+        left: 0;
+      }
     }
 
     .left,
@@ -245,6 +259,7 @@ $grid-item-border: 0.125rem; // 2px
 
   .content {
     @include flex-center;
+    align-items: flex-start;
     row-gap: $spacing-sm;
     flex-wrap: wrap;
     overflow: hidden;
@@ -256,12 +271,12 @@ $grid-item-border: 0.125rem; // 2px
   .inventory-grid {
     $item-border-radius: $spacing-xxs; // 2px
 
-    @include flexbox(row, flex-start, flex-start);
+    @include flexbox(row, center, flex-start);
     flex-wrap: wrap;
     flex-grow: 2;
 
     width: 100%;
-    max-height: $default-height - $titlebar-height - ($footer-height * 2);
+    max-height: 6rem;
     max-width: $max-width - ($icon-gap * 2);
 
     padding: $spacing-sm;
@@ -271,20 +286,39 @@ $grid-item-border: 0.125rem; // 2px
     .item {
       display: block;
       position: relative;
-      width: $item-size;
-      height: $item-size;
+      width: 37px;
+      overflow: hidden;
+      height: 37px;
       outline: $grid-item-border solid $accent-color;
       border-radius: $item-border-radius;
+      background-color: $dark-bg-light;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.025));
+        transform: scale(1.5) rotate(20deg);
+        pointer-events: none; /* So it doesn’t block clicks */
+      }
+
+      &[data-index="empty"] {
+        background-color: transparent;
+      }
 
       &:hover {
-        background-color: darken($accent-color, 7.5%);
+        background-color: $dark-bg-light;
       }
 
       .icon {
-        width: $item-size;
-        height: $item-size;
+        width: 37px;
+        height: 37px;
         border: none;
         @include background-image;
+        background-size: cover;
         border-radius: $item-border-radius;
       }
 

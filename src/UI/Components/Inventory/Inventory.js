@@ -796,7 +796,7 @@ define(function(require)
 		var url   = this.firstChild.style.backgroundImage.match(/\(([^\)]+)/)[1];
 		img.src   = url.replace(/^\"/, '').replace(/\"$/, '');
 
-		event.originalEvent.dataTransfer.setDragImage( img, 12, 12 );
+		event.originalEvent.dataTransfer.setDragImage(img, 36, 36);
 		event.originalEvent.dataTransfer.setData('Text',
 			JSON.stringify( window._OBJ_DRAG_ = {
 				type: 'item',

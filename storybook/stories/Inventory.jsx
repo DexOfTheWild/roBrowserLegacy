@@ -19,7 +19,7 @@ export const Inventory = ({ ...props }) => {
     <div id="Inventory">
       <div className="titlebar">
         <div className="left">
-          <span className="text" data-text="106">Inventory</span>
+          <span className="text" data-text="106"><img src="https://dex-ro.com/static/img/inventory-board.png" alt="Inventory" /></span>
         </div>
         <div className="right">
           <button className="base mini"></button>
@@ -46,11 +46,11 @@ export const Inventory = ({ ...props }) => {
                       slots.map((_, idx) => {
                         const item = mockItems[idx];
                         return (
-                          <div className="item" data-index={idx} draggable="true">
+                          <div key={idx} className="item" data-index={idx} draggable="true">
                             {
                               item && (
                                 <>
-                                  <div className="icon" style={{ backgroundImage: `url(${item.icon})` }} />
+                                  <div className="icon" style={{ backgroundImage: `url(https://dex-ro.com/static/img/dummy-item.png)` }} />
                                   <div className="amount">
                                     <span className="count">{item.amount}</span>
                                   </div>
