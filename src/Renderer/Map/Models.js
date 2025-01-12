@@ -155,7 +155,24 @@ define( ['Utils/WebGL'], function( WebGL )
 		gl.bufferData( gl.ARRAY_BUFFER, data.buffer, gl.STATIC_DRAW );
 
 		function onTextureLoaded( texture, i ) {
-			_objects[i].texture  = texture;
+			// Get the texture
+			_objects[i].texture = texture;
+
+			// Set better texture filtering
+			gl.bindTexture(gl.TEXTURE_2D, texture);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+			// Enable anisotropic filtering if available
+			const ext = gl.getExtension('EXT_texture_filter_anisotropic');
+			if (ext) {
+				const maxAnisotropy = gl.getParameter(ext.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
+				gl.texParameterf(gl.TEXTURE_2D, ext.TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy);
+			}
+
+			gl.generateMipmap(gl.TEXTURE_2D);
 			_objects[i].complete = true;
 		}
 
