@@ -73,7 +73,13 @@ define(function( require )
 
 		// Initialize renderer
 		q.add(function(){
-			Renderer.init();
+			Renderer.init({
+				antialias: true,
+				alpha: true,
+				depth: true,
+				preserveDrawingBuffer: true,
+				powerPreference: "high-performance"
+			});
 			q._next();
 		});
 

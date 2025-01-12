@@ -27,3 +27,4 @@
 !.vscode/*.code-snippets
 
 *storybook.log
+client/debug.log
