@@ -157,6 +157,13 @@ define(function(require)
 		_heightIndex = _preferences.height - 1;
 		ChatBox.updateHeight();
 
+		this.ui.find('.input').hide();
+		this.ui.find('.battlemode').show();
+
+		Client.loadFile(DB.INTERFACE_PATH + 'basic_interface/chatmode_off.bmp', function (data) {
+			ChatBox.ui.find('.chat-function .chatmode').css('backgroundImage', 'url(' + data + ')');
+		});
+
 		this.ui.mouseover(function(){
 			Mouse.intersect = false;
 		})
