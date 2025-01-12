@@ -41,6 +41,7 @@ define(function( require )
 	var Damage         = require('Renderer/Effects/Damage');
 	var MapPreferences = require('Preferences/Map');
 	const PACKETVER   = require('Network/PacketVerManager');
+	var TiltShiftEffect = require('Renderer/Effects/TiltShiftEffect');
 
 
 	/**
@@ -111,7 +112,8 @@ define(function( require )
 		}
 
 		// DexRO - Remove intro class from MainCanvasOverlay
-		window.document.getElementById('MainCanvasOverlay').classList.remove('intro');
+		window.document.getElementById('MainCanvasOverlay').classList.remove('start-screen');
+		window.document.getElementById('MainCanvasOverlay').classList.add('game');
 
 		// Support for instance map
 		// Is it always 3 digits ?
@@ -323,7 +325,13 @@ define(function( require )
 		}
 
 		// Initialize renderers
-		Renderer.init();
+		Renderer.init({
+			antialias: true,
+			alpha: true,
+			depth: true,
+			preserveDrawingBuffer: true,
+			powerPreference: "high-performance"
+		});
 		var gl = Renderer.getContext();
 		const worldResource = MapRenderer.currentMap.replace(/\.gat$/i, '.rsw');
 
@@ -344,6 +352,8 @@ define(function( require )
 			Renderer.show();
 			Renderer.render( MapRenderer.onRender );
 		});
+
+		TiltShiftEffect.init(gl);
 	}
 
 
@@ -354,83 +364,117 @@ define(function( require )
 	 * @param {object} gl context
 	 */
 	var _pos = new Uint16Array(2);
-	MapRenderer.onRender = function OnRender( tick, gl )
-	{
-		var fog   = MapRenderer.fog;
-		fog.use   = MapPreferences.fog;
+	MapRenderer.onRender = function OnRender(tick, gl) {
+		// Create framebuffer if not exists
+		if (!this.sceneFramebuffer) {
+			this.sceneFramebuffer = gl.createFramebuffer();
+			this.sceneTexture = gl.createTexture();
+			this.sceneDepthBuffer = gl.createRenderbuffer();
+
+			gl.bindTexture(gl.TEXTURE_2D, this.sceneTexture);
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.canvas.width, gl.canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+			// Set up depth buffer
+			gl.bindRenderbuffer(gl.RENDERBUFFER, this.sceneDepthBuffer);
+			gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, gl.canvas.width, gl.canvas.height);
+
+			gl.bindFramebuffer(gl.FRAMEBUFFER, this.sceneFramebuffer);
+			gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.sceneTexture, 0);
+			gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.sceneDepthBuffer);
+
+			if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+				console.error('Framebuffer is not complete');
+				return;
+			}
+		}
+
+		// Render scene to framebuffer
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.sceneFramebuffer);
+
+		var fog = MapRenderer.fog;
+		fog.use = MapPreferences.fog;
 		var light = MapRenderer.light;
 
 		var modelView, projection, normalMat;
 		var x, y;
 
 		// Clean mouse position in world
-		Mouse.world.x =  -1;
-		Mouse.world.y =  -1;
-		Mouse.world.z =  -1;
+		Mouse.world.x = -1;
+		Mouse.world.y = -1;
+		Mouse.world.z = -1;
 
 		// Clear screen, update camera
-		gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
-		Camera.update( tick );
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		Camera.update(tick);
 
-		modelView  = Camera.modelView;
+		modelView = Camera.modelView;
 		projection = Camera.projection;
-		normalMat  = Camera.normalMat;
+		normalMat = Camera.normalMat;
 
 		// Spam map effects
-		Effects.spam( Session.Entity.position, tick);
+		Effects.spam(Session.Entity.position, tick);
 
-		Ground.render(gl, modelView, projection, normalMat, fog, light );
-		Models.render(gl, modelView, projection, normalMat, fog, light );
+		// Render everything to our framebuffer
+		Ground.render(gl, modelView, projection, normalMat, fog, light);
+		Models.render(gl, modelView, projection, normalMat, fog, light);
 
-		if (Mouse.intersect && Altitude.intersect( modelView, projection, _pos)) {
+		if (Mouse.intersect && Altitude.intersect(modelView, projection, _pos)) {
 			x = _pos[0];
 			y = _pos[1];
-			const isWalkable = Altitude.getCellType( x, y ) & Altitude.TYPE.WALKABLE;
+			const isWalkable = Altitude.getCellType(x, y) & Altitude.TYPE.WALKABLE;
 
 			if (isWalkable) {
-				GridSelector.render( gl, modelView, projection, fog, x, y );
-				Mouse.world.x =  x;
-				Mouse.world.y =  y;
-				Mouse.world.z =  Altitude.getCellHeight( x, y );
+				GridSelector.render(gl, modelView, projection, fog, x, y);
+				Mouse.world.x = x;
+				Mouse.world.y = y;
+				Mouse.world.z = Altitude.getCellHeight(x, y);
 			}
 
-			// NO walk cursor
-			// TODO: Know the packet version for this feature
 			if (PACKETVER.value >= 20200101) {
 				if (Cursor.getActualType() === Cursor.ACTION.NOWALK && isWalkable)
-					Cursor.setType( Cursor.ACTION.DEFAULT, false );
+					Cursor.setType(Cursor.ACTION.DEFAULT, false);
 				if (Cursor.getActualType() === Cursor.ACTION.DEFAULT && !isWalkable)
-					Cursor.setType( Cursor.ACTION.NOWALK, false );
+					Cursor.setType(Cursor.ACTION.NOWALK, false);
 			}
-
 		}
 
 		// Display zone effects and entities
-		Sky.render( gl, modelView, projection, fog, tick );
-		EffectManager.render( gl, modelView, projection, fog, tick, true);
+		Sky.render(gl, modelView, projection, fog, tick);
+		EffectManager.render(gl, modelView, projection, fog, tick, true);
 
-		//Render Entities (no effects)
-		EntityManager.render( gl, modelView, projection, fog, false );
+		// Render Entities (no effects)
+		EntityManager.render(gl, modelView, projection, fog, false);
 
 		// Rendering water
-		Water.render( gl, modelView, projection, fog, light, tick );
+		Water.render(gl, modelView, projection, fog, light, tick);
 
 		// Rendering effects
-		Damage.render( gl, modelView, projection, fog, tick );
-		EffectManager.render( gl, modelView, projection, fog, tick, false);
-		EntityManager.render( gl, modelView, projection, fog, true );
+		Damage.render(gl, modelView, projection, fog, tick);
+		EffectManager.render(gl, modelView, projection, fog, tick, false);
+		EntityManager.render(gl, modelView, projection, fog, true);
 
 		// Play sounds
-		Sounds.render( Session.Entity.position, tick );
+		Sounds.render(Session.Entity.position, tick);
 
 		// Find entity over the cursor
 		if (Mouse.intersect) {
 			var entity = EntityManager.intersect();
-			EntityManager.setOverEntity( entity );
+			EntityManager.setOverEntity(entity);
 		}
 
 		// Clean up
 		MemoryManager.clean(gl, tick);
+
+		// Now that everything is rendered to the framebuffer, apply tiltshift
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		if (TiltShiftEffect.ready) {
+			TiltShiftEffect.render(gl, this.sceneTexture);
+		}
 	};
 
 
