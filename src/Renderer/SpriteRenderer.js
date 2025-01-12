@@ -114,20 +114,22 @@ function(      WebGL,         glMatrix,      Camera )
 
 		// Add color enhancement functions (similar to Ground shader)
 		vec3 saturate(vec3 color, float adjustment) {
-			float maxVal = max(max(color.r, color.g), color.b);
-			float minVal = min(min(color.r, color.g), color.b);
-			vec3 adjusted = (color - mix(vec3(minVal), vec3(maxVal), 0.5)) * adjustment + color;
-			return clamp(adjusted, 0.0, 1.0);
+			vec3 luminance = vec3(0.299, 0.587, 0.114);
+			float luma = dot(color, luminance);
+			return mix(vec3(luma), color, 1.0 + adjustment);
 		}
 
 		vec3 enhanceColor(vec3 color) {
-			// Very subtle saturation adjustment to maintain natural colors
-			vec3 saturated = saturate(color, 0.1);
+			// Increase saturation slightly
+			vec3 saturated = saturate(color, 0.2);
 
-			// Apply a slight contrast adjustment instead of direct saturation
-			vec3 enhanced = mix(saturated, vec3(0.5), -0.02);  // Tiny pull from gray
+			// Improve contrast while preserving colors
+			vec3 contrasted = (saturated - 0.5) * 1.1 + 0.5;
 
-			return enhanced;
+			// Add subtle sharpening
+			vec3 sharpened = mix(color, contrasted, 0.8);
+
+			return clamp(sharpened, 0.0, 1.0);
 		}
 
 		// With palette we don't have a good result because of the gl.NEAREST, so smooth it.
@@ -135,12 +137,12 @@ function(      WebGL,         glMatrix,      Camera )
 			vec2 textureSize = uTextSize;
 			vec2 texelSize = 1.0 / textureSize;
 
-			// Add subpixel precision
+			// Add improved subpixel precision
 			vec2 texelCoord = uv * textureSize - 0.5;
 			vec2 f = fract(texelCoord);
 			vec2 baseTexCoord = (floor(texelCoord) + 0.5) * texelSize;
 
-			// Sample with improved precision
+			// Sample with improved precision and add edge detection
 			float tlLUT = texture2D(indexT, baseTexCoord).x;
 			float trLUT = texture2D(indexT, baseTexCoord + vec2(texelSize.x, 0.0)).x;
 			float blLUT = texture2D(indexT, baseTexCoord + vec2(0.0, texelSize.y)).x;
@@ -152,11 +154,12 @@ function(      WebGL,         glMatrix,      Camera )
 			vec4 bl = blLUT == 0.0 ? transparent : vec4(texture2D(LUT, vec2(blLUT,1.0)).rgb, 1.0);
 			vec4 br = brLUT == 0.0 ? transparent : vec4(texture2D(LUT, vec2(brLUT,1.0)).rgb, 1.0);
 
-			// Improved bilinear interpolation
+			// Improved bilinear interpolation with smoothstep
+			vec2 smoothF = smoothstep(0.0, 1.0, f);
 			return mix(
-				mix(tl, tr, smoothstep(0.0, 1.0, f.x)),
-				mix(bl, br, smoothstep(0.0, 1.0, f.x)),
-				smoothstep(0.0, 1.0, f.y)
+				mix(tl, tr, smoothF.x),
+				mix(bl, br, smoothF.x),
+				smoothF.y
 			);
 		}
 
