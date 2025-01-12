@@ -125,8 +125,8 @@ define(['Utils/WebGL', 'Utils/gl-matrix'], function (WebGL, glMatrix) {
     gl.uniform1i(_program.uniform.uMainTexture, 0);
 
     gl.uniform1f(_program.uniform.uFocusPosition, 0.5);
-    gl.uniform1f(_program.uniform.uFocusRange, 0.9999);
-    gl.uniform1f(_program.uniform.uBlurAmount, 0.05);
+    gl.uniform1f(_program.uniform.uFocusRange, 0.99);
+    gl.uniform1f(_program.uniform.uBlurAmount, 0.06);
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
