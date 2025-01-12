@@ -121,8 +121,7 @@ define(function( require )
 							EntityManager.setFocusEntity(null);
 						}
 					}
-					// write coordinates to users clipboard
-					navigator.clipboard.writeText(`${Mouse.world.x},${Mouse.world.y}`);
+
 					// Entity picking ?
 					if (entityOver) {
 						stop = stop || entityOver.onMouseDown();
