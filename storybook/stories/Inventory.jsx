@@ -17,11 +17,10 @@ export const Inventory = ({ ...props }) => {
   const slots = Array.from({ length: numItemSlots }, () => null);
   return (
     <div id="Inventory">
+      <div className="drag-header"></div>
       <div className="titlebar">
-        <div className="left">
-          <span className="text" data-text="106"><img src="https://dex-ro.com/static/img/inventory-board.png" alt="Inventory" /></span>
-        </div>
-        <div className="right">
+        <span className="title text">Your Bag</span>
+        <div className="controls">
           <button className="base mini"></button>
           <button className="base close"></button>
         </div>
@@ -32,7 +31,7 @@ export const Inventory = ({ ...props }) => {
           <div className="tabs-column">
             <div className="tabs">
               <button className="item tab">Items</button>
-              <button className="equip tab">Equipment</button>
+              <button className="equip tab">Equip</button>
               <button className="etc tab">Misc</button>
             </div>
           </div>
@@ -62,14 +61,15 @@ export const Inventory = ({ ...props }) => {
                       })
                     }
                   </div>
-                  <div className="footer">
-                    <button className="extend"></button><div className="cnt">6<span className="ncnt"></span>/<span className="mcnt">100</span></div>
-                  </div>
+
                 </div>
               </div>
             </div>
           </div>
         </div>
+      </div>
+      <div className="drag-footer">
+        {/* <button className="extend"></button><div className="cnt">6<span className="ncnt"></span>/<span className="mcnt">100</span></div> */}
       </div>
     </div>
   );

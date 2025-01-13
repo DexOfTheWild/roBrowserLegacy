@@ -68,9 +68,7 @@ define(function(require)
 	 */
 	var _preferences = Preferences.get('Inventory', {
 		x:        0,
-		y:        UIVersionManager.getInventoryVersion() > 0 ? 172 : 120,
-		width:    7,
-		height:   4,
+		y: UIVersionManager.getInventoryVersion() > 0 ? 172 : 120,
 		show:     false,
 		reduce:   false,
 		tab:      Inventory.TAB.USABLE,
@@ -90,7 +88,7 @@ define(function(require)
 		this.ui.find('.titlebar .base').mousedown(stopPropagation);
 		this.ui.find('.titlebar .mini').click(onToggleReduction);
 		this.ui.find('.tabs button').mousedown(onSwitchTab);
-		this.ui.find('.footer .extend').mousedown(onResize);
+		// this.ui.find('.footer .extend').mousedown(onResize);
 		this.ui.find('.titlebar .close').click(function(){
 			Inventory.ui.hide();
 		});
@@ -114,6 +112,8 @@ define(function(require)
 		this.ui.find('.mcnt').text(100);
 
 		this.draggable(this.ui.find('.titlebar'));
+		this.draggable(this.ui.find('.drag-header'));
+		this.draggable(this.ui.find('.drag-footer'));
 	};
 
 
@@ -131,7 +131,7 @@ define(function(require)
 		// 	Inventory.ui.find('.tabs').css('backgroundImage', 'url("' + data + '")');
 		// });
 
-		this.resize( _preferences.width, _preferences.height );
+		// this.resize( _preferences.width, _preferences.height );
 
 		this.ui.css({
 			top:  Math.min( Math.max( 0, _preferences.y), Renderer.height - this.ui.height()),
@@ -162,8 +162,8 @@ define(function(require)
 		_preferences.reduce = !!_realSize;
 		_preferences.y      =  parseInt(this.ui.css('top'), 10);
 		_preferences.x      =  parseInt(this.ui.css('left'), 10);
-		_preferences.width  =  Math.floor( (this.ui.width()  - (23 + 16 + 16 - 30)) / 32 );
-		_preferences.height =  Math.floor( (this.ui.height() - (31 + 19 - 30     )) / 32 );
+		// _preferences.width  =  Math.floor( (this.ui.width()  - (23 + 16 + 16 - 30)) / 32 );
+		// _preferences.height =  Math.floor( (this.ui.height() - (31 + 19 - 30     )) / 32 );
 		_preferences.magnet_top = this.magnet.TOP;
 		_preferences.magnet_bottom = this.magnet.BOTTOM;
 		_preferences.magnet_left = this.magnet.LEFT;

@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Yuji+Boku&display=swap");
 
 // ==============================
 // Variables
@@ -30,10 +31,12 @@ $parchment-color: #eadbbe;
 $charcoal-color: #3b3a35;
 $dark-wood-color: #383c31;
 $dark-wood-color-light: #525246;
-$bg-color-brown: #8c6e53;
+$bg-color-brown: #352d24;
+
+$brown-lighter: #6c5439;
 
 // Theme assignments
-$bg-color: $dark-wood-color;
+$bg-color: $bg-color-brown;
 $accent-color: $dark-wood-color-light;
 
 // Border radius scale
@@ -59,7 +62,7 @@ $footer-height: $spacing-xl; // 24px
 $font-size-xs: 0.6875rem; // 11px
 $font-size-sm: 0.75rem; // 12px
 $font-size-md: 1.25rem; // 20px
-$font-family: "Almendra SC", serif;
+$font-family: "Yuji Boku", serif;
 
 // Positioning
 $default-top: 6.25rem; // 100px
@@ -136,33 +139,94 @@ $grid-item-border: 0.125rem; // 2px
 }
 
 #Inventory {
-  // Container styles
   position: absolute;
-  top: 100px;
-  left: 100px;
+  // Container styles
+  // position: absolute;
+  // top: 100px;
+  // left: 100px;
   max-width: $max-width;
   max-height: $max-height;
-  width: $default-width;
-  height: $default-height;
-  min-width: $min-width;
+  width: calc($default-width - 40px);
+  // height: $default-height;
+  // min-width: $min-width;
   min-height: $min-height;
   // overflow: hidden;
 
+  
   // Positioning and appearance
   top: $default-top;
   left: $default-left;
-  border-radius: $border-radius-lg;
-  background: $dark-bg;
-  box-shadow: 3px 3px 2px 0 rgba(darken($dark-bg, 5), 0.5);
+  
+  
+  // border-radius: $border-radius-lg;
+  // background: $dark-bg;
+
+  // background-repeat: repeat;
+  // box-shadow: 3px 3px 2px 0 rgba(darken($dark-bg, 5), 0.5);
 
   // Typography
   font-family: $font-family;
   font-size: $font-size-md;
-  color: $white;
+  color: $bg-color-brown;
 
   // Layout
   display: flex;
   flex-direction: column;
+  align-items: center;
+  
+    
+  .drag-header, .drag-footer {
+    content: '';
+    position: absolute;
+    width: 103%;
+    height: 140px;
+    z-index: 1;
+  }
+  
+  .drag-header {
+    top: -98px;
+    background: url("/static/bag-header.png");
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  
+  .drag-footer {
+    bottom: -135px;
+    background: url("/static/bag-footer.png");
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  
+  // &:before {
+  //   content: '';
+  //   position: absolute;
+  //   top: -78.5%;
+  //   left: -1.5%;
+  //   width: 103%;
+  //   height: 140px;
+  //   background: url("/static/bag-header.png");
+  //   background-size: contain;
+  //   background-position: center;
+  //   background-repeat: no-repeat;
+  //   z-index: 1;
+  // }
+  
+  // &:after {
+  //   content: '';
+  //   position: absolute;
+  //   bottom: -78.5%;
+  //   left: -1.5%;
+  //   width: 103.75%;
+  //   height: 140px;
+  //   background: url("/static/bag-footer.png");
+  //   background-size: contain;
+  //   background-position: center;
+  //   background-repeat: no-repeat;
+  //   z-index: 1;
+  // }
+
 
   table {
     border-spacing: 0;
@@ -172,18 +236,28 @@ $grid-item-border: 0.125rem; // 2px
   // Title bar styles
   .titlebar {
     // width: 100%;
-    @include flexbox(row, space-between, center);
-    background-color: transparent;
-
-    .base {
-      width: $spacing-lg - $spacing-xs; // 18px
-      height: $spacing-lg - $spacing-xs; // 18px
-      vertical-align: middle;
+    @include flexbox(row, center, center);
+    position: relative;
+    background-color: lighten($bg-color-brown, 35%);
+    width: 100%;
+    // padding-top: 0.5rem;
+    line-height: 2rem;
+    .controls {
+      @include flexbox(row, flex-end, center);
+      gap: 0.5rem;
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      .base {
+        width: 1rem;
+        height: 1rem;
+        vertical-align: middle;
+        border: none;
+      }
     }
 
     .text {
       white-space: nowrap;
-      line-height: 2rem;
     }
 
     .left,
@@ -203,23 +277,44 @@ $grid-item-border: 0.125rem; // 2px
 
   // Layout components
   .panel {
+    @include flexbox(column, center, center);
     flex-grow: 2;
+    width: 98%;
+    background: linear-gradient(to bottom, #90694a, #6a4c33) ;
+    box-shadow: 0 0 0 1.5px black;
   }
 
   .inventory-layout {
-    height: 100%;
+    background: url("/static/tile3.png");
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 0 12px 6px rgba($bg-color-brown, 1);
+    width: 89%;
+    border-left: 3px solid rgba(black, 0.15);
+    border-right: 3px solid rgba(black, 0.15);
     @include flexbox(column);
-    flex-grow: 2;
   }
 
   .tabs-column {
+    position: relative;
+    // padding: 0.5rem 0;
     .tabs {
-      @include flexbox(row, flex-start, center, $spacing-xs);
+      @include flexbox(column, flex-start, flex-end, $spacing-xs);
+      position: absolute;
+      top: 10px;
+      left: -63px;
       padding: 0 $spacing-sm;
       .tab {
         @include strip-button;
+        background-color: lighten($brown-lighter, 35%);
         font-size: $font-size-sm;
-        padding: $spacing-xs $spacing-sm;
+        padding: 0 $spacing-sm;
+        line-height: 1.5rem;
+        box-shadow: 0px 2px 0 0 rgba(black, 0.5);
+        
+        &:hover {
+          background-color: lighten($brown-lighter, 30%);
+        }
       }
     }
   }
@@ -258,18 +353,19 @@ $grid-item-border: 0.125rem; // 2px
     overflow: hidden;
     width: 100%;
     height: 100%;
+    border-top: 4px solid $bg-color-brown;
   }
 
   // Inventory grid styles
   .inventory-grid {
-    $item-border-radius: $spacing-xxs; // 2px
+    $item-border-radius: 20px; // 2px
 
     @include flexbox(row, center, flex-start);
     flex-wrap: wrap;
     flex-grow: 2;
 
     width: 100%;
-    max-height: 6rem;
+    max-height: 8.75rem;
     max-width: $max-width - ($icon-gap * 2);
 
     padding: $spacing-sm;
@@ -280,44 +376,53 @@ $grid-item-border: 0.125rem; // 2px
       display: block;
       position: relative;
       width: 37px;
-      overflow: hidden;
       height: 37px;
-      outline: $grid-item-border solid $accent-color;
+      border: $grid-item-border solid lighten($bg-color-brown, 2%);
+      box-shadow: 0 0 1px 1px rgba($bg-color-brown, 0.25);
       border-radius: $item-border-radius;
-      background-color: $dark-bg-light;
+      background-color: #7a6348;
+      @include flex-center;
+      
 
-      &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.025));
-        transform: scale(1.5) rotate(20deg);
-        pointer-events: none; /* So it doesn’t block clicks */
-      }
+      // &::before {
+      //   content: '';
+      //   position: absolute;
+      //   top: 0;
+      //   left: 0;
+      //   width: 100%;
+      //   height: 100%;
+      //   background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.025));
+      //   transform: scale(1.5) rotate(20deg);
+      //   pointer-events: none; /* So it doesn’t block clicks */
+      // }
 
       &[data-index="empty"] {
         background-color: transparent;
       }
 
       &:hover {
-        background-color: $dark-bg-light;
+        background-color: lighten(#7a6348, 2.5%);
+        
+        .icon {
+          background-size: 110%;
+        }
       }
 
       .icon {
-        width: 37px;
-        height: 37px;
+        width: 75%;
+        height: 75%;
         border: none;
         @include background-image;
-        background-size: cover;
+        background-size: 100%;
         border-radius: $item-border-radius;
+        transition: background-size 0.2s ease-in-out;
       }
 
       .amount {
-        position: relative;
-        bottom: $spacing-sm + $spacing-xs; // 9px
+        color: $white;
+        text-shadow: 1px 1px rgba(0, 0, 0, 0.5);
+        position: absolute;
+        top: -2px;
         right: 0;
         font-size: $font-size-xs;
         text-align: right;
@@ -351,6 +456,8 @@ $grid-item-border: 0.125rem; // 2px
     position: relative;
     width: 100%;
     height: $footer-height;
+    background-color: $brown-lighter;
+    border-top: 4px solid $bg-color-brown;
 
     .cnt {
       position: absolute;
