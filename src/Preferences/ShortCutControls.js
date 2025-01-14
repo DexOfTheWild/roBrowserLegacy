@@ -29,7 +29,7 @@ define(["Core/Preferences",	"Controls/KeyEventHandler", "Network/PacketVerManage
 	ShortCuts.F2_8 =			{	init:{key: KEYS[8],		alt: false,	ctrl: false,	shift: false},	cust: false,	component:'ShortCut',			cmd:'EXECUTE16'				};
 	ShortCuts.F2_9 =			{	init:{key: KEYS[9],		alt: false,	ctrl: false,	shift: false},	cust: false,	component:'ShortCut',			cmd:'EXECUTE17'				};
 	ShortCuts.F3_1 =			{	init:{key: KEYS.Q,		alt: false,	ctrl: false,	shift: false},	cust: false,	component:'ShortCut',			cmd:'EXECUTE18'				};
-	ShortCuts.F3_2 =			{	init:{key: KEYS.W,		alt: false,	ctrl: false,	shift: false},	cust: false,	component:'ShortCut',			cmd:'EXECUTE19'				};
+	// ShortCuts.F3_2 =			{	init:{key: KEYS.W,		alt: false,	ctrl: false,	shift: false},	cust: false,	component:'ShortCut',			cmd:'EXECUTE19'				};
 	ShortCuts.F3_3 =			{	init:{key: KEYS.E,		alt: false,	ctrl: false,	shift: false},	cust: false,	component:'ShortCut',			cmd:'EXECUTE20'				};
 	ShortCuts.F3_4 =			{	init:{key: KEYS.R,		alt: false,	ctrl: false,	shift: false},	cust: false,	component:'ShortCut',			cmd:'EXECUTE21'				};
 	ShortCuts.F3_5 =			{	init:{key: KEYS.T,		alt: false,	ctrl: false,	shift: false},	cust: false,	component:'ShortCut',			cmd:'EXECUTE22'				};
@@ -37,9 +37,9 @@ define(["Core/Preferences",	"Controls/KeyEventHandler", "Network/PacketVerManage
 	ShortCuts.F3_7 =			{	init:{key: KEYS.U,		alt: false,	ctrl: false,	shift: false},	cust: false,	component:'ShortCut',			cmd:'EXECUTE24'				};
 	ShortCuts.F3_8 =			{	init:{key: KEYS.I,		alt: false,	ctrl: false,	shift: false},	cust: false,	component:'ShortCut',			cmd:'EXECUTE25'				};
 	ShortCuts.F3_9 =			{	init:{key: KEYS.O,		alt: false,	ctrl: false,	shift: false},	cust: false,	component:'ShortCut',			cmd:'EXECUTE26'				};
-	ShortCuts.F4_1 =			{	init:{key: KEYS.A,		alt: false,	ctrl: false,	shift: false},	cust: false,	component:'ShortCut',			cmd:'EXECUTE27'				};
+	// ShortCuts.F4_1 =			{	init:{key: KEYS.A,		alt: false,	ctrl: false,	shift: false},	cust: false,	component:'ShortCut',			cmd:'EXECUTE27'				};
 	ShortCuts.F4_2 =			{	init:{key: KEYS.S,		alt: false,	ctrl: false,	shift: false},	cust: false,	component:'ShortCut',			cmd:'EXECUTE28'				};
-	ShortCuts.F4_3 =			{	init:{key: KEYS.D,		alt: false,	ctrl: false,	shift: false},	cust: false,	component:'ShortCut',			cmd:'EXECUTE29'				};
+	// ShortCuts.F4_3 =			{	init:{key: KEYS.D,		alt: false,	ctrl: false,	shift: false},	cust: false,	component:'ShortCut',			cmd:'EXECUTE29'				};
 	ShortCuts.F4_4 =			{	init:{key: KEYS.F,		alt: false,	ctrl: false,	shift: false},	cust: false,	component:'ShortCut',			cmd:'EXECUTE30'				};
 	ShortCuts.F4_5 =			{	init:{key: KEYS.G,		alt: false,	ctrl: false,	shift: false},	cust: false,	component:'ShortCut',			cmd:'EXECUTE31'				};
 	ShortCuts.F4_6 =			{	init:{key: KEYS.H,		alt: false,	ctrl: false,	shift: false},	cust: false,	component:'ShortCut',			cmd:'EXECUTE32'				};
@@ -48,17 +48,17 @@ define(["Core/Preferences",	"Controls/KeyEventHandler", "Network/PacketVerManage
 	ShortCuts.F4_9 =			{	init:{key: KEYS.L,		alt: false,	ctrl: false,	shift: false},	cust: false,	component:'ShortCut',			cmd:'EXECUTE35'				};
 	ShortCuts.ChatRoom =		{	init:{key: KEYS.C,		alt: true,	ctrl: false,	shift: false},	cust: false,	component:'ChatRoomCreate',		cmd:'TOGGLE'				};
 	ShortCuts.Inventory =		{	init:{key: KEYS.E,		alt: true,	ctrl: false,	shift: false},	cust: false,	component:'Inventory',			cmd:'TOGGLE'				};
-	ShortCuts.PushCart =		{	init:{key: KEYS.W,		alt: true,	ctrl: false,	shift: false},	cust: false,	component:'CartItems',			cmd:'TOGGLE'				};
+	// ShortCuts.PushCart =		{	init:{key: KEYS.W,		alt: true,	ctrl: false,	shift: false},	cust: false,	component:'CartItems',			cmd:'TOGGLE'				};
 	ShortCuts.Guild =			{	init:{key: KEYS.G,		alt: true,	ctrl: false,	shift: false},	cust: false,	component:'Guild',				cmd:'TOGGLE'				};
 	ShortCuts.PetInfo =			{	init:{key: KEYS.J,		alt: true,	ctrl: false,	shift: false},	cust: false,	component:'PetInformations',	cmd:'TOGGLE'				};
 	ShortCuts.Emotions =		{	init:{key: KEYS.L,		alt: true,	ctrl: false,	shift: false},	cust: false,	component:'Emoticons',			cmd:'TOGGLE'				};
 	ShortCuts.WorldMap =		{	init:{key: KEYS[0],		alt: true,	ctrl: false,	shift: false},	cust: false,	component:'WorldMap',			cmd:'TOGGLE'				};
 	ShortCuts.Equipment =		{	init:{key: KEYS.Q,		alt: true,	ctrl: false,	shift: false},	cust: false,	component:'Equipment',			cmd:'TOGGLE'				};
 	if ( PACKETVER.value < 20090617 || PACKETVER.value  >= 20140521 ) {
-		ShortCuts.WinStats =	{	init:{key: KEYS.A,		alt: true,	ctrl: false,	shift: false},	cust: false,	component:'WinStats',		cmd:'TOGGLE'				};
+		// ShortCuts.WinStats =	{	init:{key: KEYS.A,		alt: true,	ctrl: false,	shift: false},	cust: false,	component:'WinStats',		cmd:'TOGGLE'				};
 	}
 	ShortCuts.ShortCuts =		{	init:{key: KEYS.M,		alt: true,	ctrl: false,	shift: false},	cust: false,	component:'ShortCuts',			cmd:'TOGGLE'				};
-	ShortCuts.SkillList =		{	init:{key: KEYS.S,		alt: true,	ctrl: false,	shift: false},	cust: false,	component:'SkillList',			cmd:'TOGGLE'				};
+	// ShortCuts.SkillList =		{	init:{key: KEYS.S,		alt: true,	ctrl: false,	shift: false},	cust: false,	component:'SkillList',			cmd:'TOGGLE'				};
 	ShortCuts.BasicInfo =		{	init:{key: KEYS.V,		alt: true,	ctrl: false,	shift: false},	cust: false,	component:'BasicInfo',			cmd:'EXTEND'				};
 	ShortCuts.Friends =			{	init:{key: KEYS.H,		alt: true,	ctrl: false,	shift: false},	cust: false,	component:'PartyFriends',		cmd:'FRIEND'				};
 	ShortCuts.Party =			{	init:{key: KEYS.Z,		alt: true,	ctrl: false,	shift: false},	cust: false,	component:'PartyFriends',		cmd:'PARTY'					};
