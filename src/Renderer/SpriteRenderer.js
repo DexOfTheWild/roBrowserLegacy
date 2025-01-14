@@ -538,7 +538,7 @@ function(      WebGL,         glMatrix,      Camera )
 
 		if (isBlendModeOne) {
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-		} else {
+		} else if (isBlendModeOne === false) {
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 		}
 
