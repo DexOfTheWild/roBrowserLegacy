@@ -26,10 +26,10 @@ define(function (require) {
 
   //Configure keys here
   var MOVE = {
-    RIGHT: KEYS.RIGHT,
-    LEFT: KEYS.LEFT,
-    UP: KEYS.UP,
-    DOWN: KEYS.DOWN
+    RIGHT: [KEYS.RIGHT, KEYS.D],
+    LEFT: [KEYS.LEFT, KEYS.A],
+    UP: [KEYS.UP, KEYS.W],
+    DOWN: [KEYS.DOWN, KEYS.S]
   };
 
   //Multiple keys held
@@ -41,7 +41,10 @@ define(function (require) {
 
   //---- Now the job ----
   function processKeyDownEvent(event) {
-    if (event.which === MOVE.RIGHT || event.which === MOVE.LEFT || event.which === MOVE.UP || event.which === MOVE.DOWN) {
+    if (MOVE.RIGHT.includes(event.which) ||
+      MOVE.LEFT.includes(event.which) ||
+      MOVE.UP.includes(event.which) ||
+      MOVE.DOWN.includes(event.which)) {
 
       // Skip if typing
       if (document.activeElement.tagName === 'INPUT') {
@@ -69,7 +72,10 @@ define(function (require) {
   }
 
   function processKeyUpEvent(event) {
-    if (event.which === MOVE.RIGHT || event.which === MOVE.LEFT || event.which === MOVE.UP || event.which === MOVE.DOWN) {
+    if (MOVE.RIGHT.includes(event.which) ||
+      MOVE.LEFT.includes(event.which) ||
+      MOVE.UP.includes(event.which) ||
+      MOVE.DOWN.includes(event.which)) {
       delete KeyEvent[event.which];
     }
   }
@@ -78,16 +84,14 @@ define(function (require) {
     clearTimeout(keysDownTimeout);
 
     if (Session.Entity && Object.keys(KeyEvent).length > 0) {
-
       direction[0] = 0;
       direction[1] = 0;
 
       // Get direction from keyboard
-      if (KeyEvent[MOVE.RIGHT] && KeyEvent[MOVE.RIGHT].pressed) direction[0] += (KeyEvent[MOVE.RIGHT].continuous ? 3 : 1);
-      if (KeyEvent[MOVE.LEFT] && KeyEvent[MOVE.LEFT].pressed) direction[0] -= (KeyEvent[MOVE.LEFT].continuous ? 3 : 1);
-
-      if (KeyEvent[MOVE.UP] && KeyEvent[MOVE.UP].pressed) direction[1] += (KeyEvent[MOVE.UP].continuous ? 3 : 1);
-      if (KeyEvent[MOVE.DOWN] && KeyEvent[MOVE.DOWN].pressed) direction[1] -= (KeyEvent[MOVE.DOWN].continuous ? 3 : 1);
+      MOVE.RIGHT.forEach(key => { if (KeyEvent[key] && KeyEvent[key].pressed) direction[0] += 1; });
+      MOVE.LEFT.forEach(key => { if (KeyEvent[key] && KeyEvent[key].pressed) direction[0] -= 1; });
+      MOVE.UP.forEach(key => { if (KeyEvent[key] && KeyEvent[key].pressed) direction[1] += 1; });
+      MOVE.DOWN.forEach(key => { if (KeyEvent[key] && KeyEvent[key].pressed) direction[1] -= 1; });
 
       // Initialize matrix, based on Camera direction
       mat2.identity(rotate);
@@ -101,8 +105,13 @@ define(function (require) {
         Math.round(Session.Entity.position[1] + direction[1])
       ];
 
-      //Create move packed and add direction to current position then send packet but only when not already moving there
-      if (targetPos[0] !== newPos[0] || targetPos[1] !== newPos[1]) {
+      // Only send new movement packet if:
+      // 1. We're not already moving to this position
+      // 2. We're in motion (to maintain animation) OR starting from idle
+      if ((targetPos[0] !== newPos[0] || targetPos[1] !== newPos[1]) &&
+        (Session.Entity.action === Session.Entity.ACTION.WALK ||
+          Session.Entity.action === Session.Entity.ACTION.IDLE)) {
+
         targetPos[0] = newPos[0];
         targetPos[1] = newPos[1];
         var pkt = new PACKET.CZ.REQUEST_MOVE();
@@ -111,7 +120,8 @@ define(function (require) {
         Network.sendPacket(pkt);
       }
 
-      keysDownTimeout = setTimeout(processKeysDown, 100);
+      // Reduce the timeout to make movement more responsive
+      keysDownTimeout = setTimeout(processKeysDown, 50);
     }
   }
 
