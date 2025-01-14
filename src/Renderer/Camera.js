@@ -33,14 +33,14 @@ define(function( require )
 	 * @var {number} camera min-max constants
 	 */
 	const C_MIN_ZOOM = 1;
-	const C_MAX_ZOOM = 5;
+	const C_MAX_ZOOM = 3;
 	
 	const C_MIN_V_ANGLE_ISOMETRIC = 190;
 	const C_MAX_V_ANGLE_ISOMETRIC = 270;
 	
 	const C_THIRDPERSON_TRESHOLD_ZOOM = 1;
 	const C_MIN_V_ANGLE_3RDPERSON = 175;
-	const C_MAX_V_ANGLE_3RDPERSON = 270;
+	const C_MAX_V_ANGLE_3RDPERSON = 230;
 	
 	const C_MIN_V_ANGLE_1STPERSON = 90;
 	const C_MAX_V_ANGLE_1STPERSON = 270;
@@ -299,12 +299,12 @@ define(function( require )
 		this.currentMap = getModule('Renderer/MapRenderer').currentMap;
 
 		if (DB.isIndoor(this.currentMap)) {
-			this.zoomFinal = Preferences.indoorZoom || 60;
+			this.zoomFinal = Preferences.indoorZoom || 150;
 			this.angleFinal[0] = 230;
 			this.angleFinal[1] = -40;
 			this.enable3RDPerson = false;
 		} else {
-			this.zoomFinal = Preferences.zoom || 60;
+			this.zoomFinal = Preferences.zoom || 150;
 		}
 
 		//this.updateState();
@@ -491,7 +491,7 @@ define(function( require )
 				var Renderer    = require('Renderer/Renderer');
 				this.MIN_V_ANGLE = C_MIN_V_ANGLE_3RDPERSON;
 				this.MAX_V_ANGLE = C_MAX_V_ANGLE_3RDPERSON;
-				Renderer.vFov = 30;
+				Renderer.vFov = 40;
 				Renderer.resize();
 				this.zoomStepMult = 0.3;
 				this.state = this.states.third_person;
@@ -548,8 +548,7 @@ define(function( require )
 		}
 		
 		// Zoom
-		this.zoom        += ( this.zoomFinal - this.zoom ) * lerp * 2.0;
-		
+		this.zoom += (this.zoomFinal - this.zoom) * lerp * 2.0;
 		var zOffset = 0;
 		if(this.state == this.states.first_person){
 			zOffset = 2;
