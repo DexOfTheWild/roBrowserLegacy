@@ -1772,6 +1772,10 @@ define(function( require )
 
 			case StatusConst.SKE:
 				if (pkt.state === 1) {
+					if (Session.isTouchDevice) {
+						break;
+					}
+
 					const overlay = document.querySelector('.main-canvas-overlay');
 					if (Session.mapState.isNight) {
 						console.log('[DayNight] Already night. Just applying night class with no transition.');

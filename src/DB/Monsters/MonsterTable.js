@@ -3699,6 +3699,7 @@ define(function()
 		10251: "4_m_popfesta",
 		10252: "4_bonfire",
 		10253: "clear_npc",
+		13101: "iron_ore",
 		21303: "ep18_ashring"
 	};
 });
