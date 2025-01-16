@@ -36,6 +36,7 @@ define(function( require )
 	var ChatBox     = require('UI/Components/ChatBox/ChatBox');
 	var Equipment   = require('UI/Components/Equipment/Equipment');
 	var getModule   = require;
+	var NPCInterceptor = require('Engine/NPCInterceptor');
 
 
 	/**
@@ -197,6 +198,11 @@ define(function( require )
 			case Entity.TYPE_NPC2:
 				//check if already talk to NPC
 				if (!NpcBox.ui || !NpcBox.ui.is(':visible')) {
+					// Add pre-interaction hook
+					if (NPCInterceptor.onPreInteract(this) === false) {
+						return true;
+					}
+
 					pkt      = new PACKET.CZ.CONTACTNPC();
 					pkt.NAID = this.GID;
 					pkt.type = 1; // 1 for NPC in Aegis
@@ -215,6 +221,9 @@ define(function( require )
 
 					//Update Cursor
 					Cursor.setType( Cursor.ACTION.DEFAULT );
+
+					// Add post-interaction hook
+					NPCInterceptor.onPostInteract(this);
 				}
 				return true;
 

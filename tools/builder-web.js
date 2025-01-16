@@ -194,7 +194,10 @@ function createHTML(){
                                 },
                                 EnhancedTargeting: {
                                     path: 'EnhancedTargeting/index.js'
-                                }
+                                },
+								Interceptor: {
+									path: 'Interceptor/index.js'
+								}
                             },
 							clientHash: null,
 							enableCashShop: false,

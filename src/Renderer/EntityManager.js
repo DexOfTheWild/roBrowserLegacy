@@ -20,6 +20,7 @@ define(function( require )
 	var KEYS           = require('Controls/KeyEventHandler');
 	var PathFinding	   = require('Utils/PathFinding');
 	var Altitude       = require('Renderer/Map/Altitude');
+	var NPCInterceptor = require('Engine/NPCInterceptor');
 
 	var _list = [];
 
@@ -301,7 +302,17 @@ define(function( require )
 					continue;
 				}
 
+				// Add pre-render hook for NPCs
+				if (_list[i].objecttype === Entity.TYPE_NPC) {
+					NPCInterceptor.onPreRender(_list[i], modelView, projection);
+				}
+
 				_list[i].render( modelView, projection);
+
+				// Add post-render hook for NPCs
+				if (_list[i].objecttype === Entity.TYPE_NPC) {
+					NPCInterceptor.onPostRender(_list[i], modelView, projection);
+				}
 			}
 		}
 

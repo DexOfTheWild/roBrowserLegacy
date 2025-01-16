@@ -22,6 +22,7 @@ define( function( require )
 	var glMatrix = require('Utils/gl-matrix');
 	var vec3     = glMatrix.vec3;
 	var mat4     = glMatrix.mat4;
+	var NPCInterceptor = require('Engine/NPCInterceptor');
 
 
 	/**
@@ -56,7 +57,13 @@ define( function( require )
 		// Bind data
 		if (data) {
 			this.clean();
-			this.set( data );
+			if (this.isNPC(data)) {
+				NPCInterceptor.onPreCreate(data);
+			}
+			this.set(data);
+			if (this.isNPC(data)) {
+				NPCInterceptor.onPostCreate(this);
+			}
 		}
 	}
 
@@ -499,6 +506,17 @@ define( function( require )
 					this.direction = dir;
 			}
 		}
+	};
+
+
+	/**
+	 * Helper method to check if entity is an NPC
+	 */
+	Entity.prototype.isNPC = function isNPC(data) {
+		return data.objecttype === Entity.TYPE_NPC ||
+			data.objecttype === Entity.TYPE_NPC2 ||
+			data.objecttype === Entity.TYPE_NPC_ABR ||
+			data.objecttype === Entity.TYPE_NPC_BIONIC;
 	};
 
 
