@@ -66,17 +66,17 @@
   }
 
   &.game {
-    &.day {
-      transition: background 20s ease;
-      background: rgba(205, 50, 50, 0);
-    }
+    // &.day {
+    //   transition: background 20s ease;
+    //   background: rgba(205, 50, 50, 0);
+    // }
 
-    &.night {
-      background: rgba(#1e1033, 0.4);
-      &.transitioning {
-        animation: sunsetToNight 20s ease;
-      }
-    }
+    // &.night {
+    //   background: rgba(#1e1033, 0.4);
+    //   &.transitioning {
+    //     animation: sunsetToNight 20s ease;
+    //   }
+    // }
   }
 }
 

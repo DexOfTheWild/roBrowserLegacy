@@ -94,7 +94,7 @@ define(function( require )
 	/**
 	 * @var {number} transition duration
 	 */
-	var _transitionDuration = 2000000; // 2 seconds, match your CSS transition
+	var _transitionDuration = 1000000; // 2 seconds, match your CSS transition
 
 
 	/**

@@ -42,6 +42,7 @@ define(function()
 	Weather.sky['prt_fild07.rsw'] = { skyColor: [0.4, 0.6, 0.8, 1.0], cloudColor: [1.0, 1.0, 1.0] };
 	Weather.sky['prt_fild08.rsw'] = { skyColor: [0.4, 0.6, 0.8, 1.0], cloudColor: [1.0, 1.0, 1.0] };
 	Weather.sky['yuno.rsw']        = { skyColor:[0.4, 0.6, 0.8, 1.0], cloudColor:[1.0, 1.0, 1.0] };
+	Weather.sky['1@mir.rsw'] = { skyColor: [0.4, 0.6, 0.8, 1.0], cloudColor: [1.0, 1.0, 1.0] };
 
 	// Extras
 	Weather.sky['5@tower.rsw']     = { skyColor:[0.2, 0.0, 0.2, 1.0],    cloudColor:[1.0, 0.7, 0.7] };

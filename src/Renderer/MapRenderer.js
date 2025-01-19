@@ -63,6 +63,19 @@ define(function( require )
 
 
 	/**
+	 * @var {Array} Point Lights Structure
+	 */
+	MapRenderer.pointLights = [];
+
+
+	/**
+	 * @var {number} Maximum number of point lights to process
+	 * Can be adjusted based on performance requirements
+	 */
+	MapRenderer.MAX_POINT_LIGHTS = 10;
+
+
+	/**
 	 * @var {object} Water Structure
 	 */
 	MapRenderer.water = null;
@@ -189,7 +202,7 @@ define(function( require )
 
 		Mouse.intersect = false;
 
-		this.light   = null;
+		this.initLightData();
 		this.water   = null;
 		this.sounds  = null;
 		this.effects = null;
@@ -210,21 +223,50 @@ define(function( require )
 	/**
 	 * Received parsed world
 	 */
-	function onWorldComplete( data )
-	{
-		this.light   = data.light;
-		this.water   = data.water;
-		this.sounds  = data.sound;
+	function onWorldComplete(data) {
+		// Initialize default light data
+		this.initLightData();
+
+		if (data.light) {
+			// Calculate light direction
+			var longitude = (data.light.longitude || 45) * Math.PI / 180;
+			var latitude = (data.light.latitude || 45) * Math.PI / 180;
+
+			this.light.direction[0] = -Math.cos(longitude) * Math.sin(latitude);
+			this.light.direction[1] = -Math.cos(latitude);
+			this.light.direction[2] = -Math.sin(longitude) * Math.sin(latitude);
+
+			// Copy light properties if they exist
+			if (data.light.ambient) {
+				this.light.ambient.set(data.light.ambient);
+			}
+			if (data.light.diffuse) {
+				this.light.diffuse.set(data.light.diffuse);
+			}
+			if (typeof data.light.opacity === 'number') {
+				this.light.opacity = data.light.opacity;
+			}
+		}
+
+		// Store point lights
+		if (Array.isArray(data.pointLights)) {
+			this.pointLights = data.pointLights.slice(0, this.MAX_POINT_LIGHTS);
+		}
+
+		// Debug output
+		console.log('World Complete Light Data:', {
+			direction: Array.from(this.light.direction),
+			ambient: Array.from(this.light.ambient),
+			diffuse: Array.from(this.light.diffuse),
+			opacity: this.light.opacity,
+			pointLightsCount: this.pointLights.length
+		});
+
+		this.water = data.water;
+		this.sounds = data.sound;
 		this.effects = data.effect;
 
-		// Calculate light direction
-		this.light.direction = new Float32Array(3);
-		var longitude        = this.light.longitude * Math.PI / 180;
-		var latitude         = this.light.latitude  * Math.PI / 180;
-
-		this.light.direction[0] = -Math.cos(longitude) * Math.sin(latitude);
-		this.light.direction[1] = -Math.cos(latitude);
-		this.light.direction[2] = -Math.sin(longitude) * Math.sin(latitude);
+		Thread.send('MAP_WORLD_COMPLETE');
 	}
 
 
@@ -418,9 +460,27 @@ define(function( require )
 		// Spam map effects
 		Effects.spam(Session.Entity.position, tick);
 
-		// Render everything to our framebuffer
-		Ground.render(gl, modelView, projection, normalMat, fog, light);
-		Models.render(gl, modelView, projection, normalMat, fog, light);
+		// Create lighting data structure with safeguards
+		var lightingData = {
+			direction: this.light?.direction || new Float32Array([0, -1, 0]), // Default light from above
+			ambient: this.light?.ambient || new Float32Array([0.6, 0.6, 0.6]),
+			diffuse: this.light?.diffuse || new Float32Array([1.0, 1.0, 1.0]),
+			opacity: this.light?.opacity || 1.0,
+			pointLights: this.pointLights || []
+		};
+
+		// Debug output
+		// console.log('Light Data:', {
+		// 	direction: Array.from(lightingData.direction),
+		// 	ambient: Array.from(lightingData.ambient),
+		// 	diffuse: Array.from(lightingData.diffuse),
+		// 	opacity: lightingData.opacity,
+		// 	pointLightsCount: lightingData.pointLights.length
+		// });
+
+		// Pass lighting data to renderers
+		Ground.render(gl, modelView, projection, normalMat, fog, lightingData);
+		Models.render(gl, modelView, projection, normalMat, fog, lightingData);
 
 		if (Mouse.intersect && Altitude.intersect(modelView, projection, _pos)) {
 			x = _pos[0];
@@ -475,6 +535,49 @@ define(function( require )
 		if (TiltShiftEffect.ready) {
 			TiltShiftEffect.render(gl, this.sceneTexture);
 		}
+
+		// Pass the same light info to both renderers
+		Ground.render(gl, modelView, projection, normalMat, fog, lightingData);
+		Models.render(gl, modelView, projection, normalMat, fog, lightingData);
+
+		// Pass light info to sprite renderer only if program exists
+		if (SpriteRenderer._program) {
+			// console.log('Light values being passed to SpriteRenderer:', {
+			// 	direction: Array.from(this.light.direction),
+			// 	ambient: Array.from(this.light.ambient),
+			// 	diffuse: Array.from(this.light.diffuse),
+			// 	opacity: this.light.opacity
+			// });
+
+			// gl.useProgram(SpriteRenderer._program);
+			// var uniform = SpriteRenderer._program.uniform;
+			// if (!uniform) {
+			// 	console.error('SpriteRenderer uniforms not initialized');
+			// 	return;
+			// }
+
+			// gl.uniform3fv(uniform.uLightDirection, this.light.direction);
+			// gl.uniform3fv(uniform.uLightAmbient, this.light.ambient);
+			// gl.uniform3fv(uniform.uLightDiffuse, this.light.diffuse);
+			// gl.uniform1f(uniform.uLightOpacity, this.light.opacity);
+
+			// // Pass point light count
+			// gl.uniform1i(uniform.uNumPointLights, this.pointLights.length);
+
+			// // Pass point light data
+			// for (let i = 0; i < this.pointLights.length; i++) {
+			// 	const light = this.pointLights[i];
+			// 	const index = `[${i}]`;
+
+			// 	gl.uniform3fv(uniform[`uPointLightPosition${index}`], light.position);
+			// 	gl.uniform3fv(uniform[`uPointLightColor${index}`], light.color);
+			// 	gl.uniform1f(uniform[`uPointLightRange${index}`], light.range);
+			// 	gl.uniform1f(uniform[`uPointLightConstant${index}`], light.attenuation.constant);
+			// 	gl.uniform1f(uniform[`uPointLightLinear${index}`], light.attenuation.linear);
+			// 	gl.uniform1f(uniform[`uPointLightQuadratic${index}`], light.attenuation.quadratic);
+			// 	gl.uniform1i(uniform[`uPointLightEnabled${index}`], light.enabled ? 1 : 0);
+			// }
+		}
 	};
 
 
@@ -483,6 +586,20 @@ define(function( require )
 	 */
 	MapRenderer.onLoad = function onLoad()
 	{
+	};
+
+
+	/**
+	 * Initialize light data
+	 */
+	MapRenderer.initLightData = function () {
+		this.light = {
+			direction: new Float32Array([0, -1, 0]),  // Default direction
+			ambient: new Float32Array([0.6, 0.6, 0.6]),
+			diffuse: new Float32Array([1.0, 1.0, 1.0]),
+			opacity: 1.0
+		};
+		this.pointLights = [];
 	};
 
 

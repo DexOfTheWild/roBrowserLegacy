@@ -7,8 +7,8 @@
  *
  * @author Vincent Thibault
  */
-define(['Utils/WebGL', 'Utils/Texture', 'Preferences/Map'],
-function(      WebGL,         Texture,   Preferences )
+define(['Utils/WebGL', 'Utils/Texture', 'Preferences/Map', 'Engine/SessionStorage'],
+	function (WebGL, Texture, Preferences, Session)
 {
 	'use strict';
 
@@ -67,12 +67,35 @@ function(      WebGL,         Texture,   Preferences )
 	var _height = 0;
 
 
+		/**
+		 * @var {number} Transition start time
+		 */
+		var _transitionStartTime = 0;
+
+
+		/**
+		 * @var {boolean} Is transitioning
+		 */
+		var _isTransitioning = false;
+
+
+		/**
+		 * @var {boolean} Transition from night
+		 */
+		var _transitionFromNight = false;
+
+
+		/**
+		 * @var {number} Transition duration
+		 */
+		var TRANSITION_DURATION = 10000; // 1 minute in milliseconds
+
+
 	/**
 	 * @var {string} Vertex Shader
 	 */
-	var _vertexShader   = `
+		var _vertexShader = `
 		#version 100
-		#pragma vscode_glsllint_stage : vert
 		precision highp float;
 
 		attribute vec3 aPosition;
@@ -81,87 +104,117 @@ function(      WebGL,         Texture,   Preferences )
 		attribute vec2 aLightmapCoord;
 		attribute vec2 aTileColorCoord;
 
-		attribute float aCustomAttribute;
-
 		varying vec2 vTextureCoord;
 		varying vec2 vLightmapCoord;
 		varying vec2 vTileColorCoord;
+		varying vec3 vNormal;
+		varying vec3 vFragPos;
 		varying float vLightWeighting;
-
-		varying float vCustomValue;
 
 		uniform mat4 uModelViewMat;
 		uniform mat4 uProjectionMat;
-
-		uniform vec3 uLightDirection;
 		uniform mat3 uNormalMat;
-
-		uniform float uTime;
+		uniform vec3 uLightDirection;
 
 		void main(void) {
-			gl_Position     = uProjectionMat * uModelViewMat * vec4( aPosition, 1.0);
+			vec4 worldPos = uModelViewMat * vec4(aPosition, 1.0);
+			gl_Position = uProjectionMat * worldPos;
 
-			vTextureCoord   = aTextureCoord;
-			vLightmapCoord  = aLightmapCoord;
+			// Pass fragment position and normal to fragment shader
+			vFragPos = worldPos.xyz;
+			vNormal = uNormalMat * aVertexNormal;
+
+			// Pass texture coordinates
+			vTextureCoord = aTextureCoord;
+			vLightmapCoord = aLightmapCoord;
 			vTileColorCoord = aTileColorCoord;
 
-			vec4 lDirection  = uModelViewMat * vec4( uLightDirection, 0.0);
-			vec3 dirVector   = normalize(lDirection.xyz);
-			float dotProduct = dot( uNormalMat * aVertexNormal, dirVector );
-			vLightWeighting  = max( dotProduct, 0.1 );
-
-			float wave = sin(uTime * 0.001 + aPosition.x * 0.1);
-			wave = wave * (1.0 - max(wave, 0.0) * 0.5);
-			vCustomValue = wave * 0.5 + 0.5;
+			// Calculate directional light weighting
+			vec4 lDirection = uModelViewMat * vec4(uLightDirection, 0.0);
+			vec3 dirVector = normalize(lDirection.xyz);
+			vLightWeighting = max(dot(vNormal, dirVector), 0.1);
 		}
 	`;
 
 	/**
 	 * @var {string} Fragment Shader
 	 */
-	var _fragmentShader = `
-		#version 100
-		#pragma vscode_glsllint_stage : frag
+		var _fragmentShader = `
 		precision highp float;
+
+		// Maximum number of point lights
+		#define MAX_POINT_LIGHTS 10
 
 		varying vec2 vTextureCoord;
 		varying vec2 vLightmapCoord;
 		varying vec2 vTileColorCoord;
+		varying vec3 vNormal;
+		varying vec3 vFragPos;
 		varying float vLightWeighting;
-
-		varying float vCustomValue;
 
 		uniform sampler2D uDiffuse;
 		uniform sampler2D uLightmap;
 		uniform sampler2D uTileColor;
 		uniform bool uLightMapUse;
 
-		uniform bool  uFogUse;
-		uniform float uFogNear;
-		uniform float uFogFar;
-		uniform vec3  uFogColor;
-
-		uniform vec3  uLightAmbient;
-		uniform vec3  uLightDiffuse;
+		// Directional light uniforms
+		uniform vec3 uLightDirection;
+		uniform vec3 uLightAmbient;
+		uniform vec3 uLightDiffuse;
 		uniform float uLightOpacity;
 
-		uniform float uEffectStrength;
+		// Point light uniforms (using individual uniforms instead of arrays)
+		uniform int uNumPointLights;
 
-		// Add color enhancement functions
-		vec3 saturate(vec3 color, float adjustment) {
-			// Convert to HSL-like space
-			float maxVal = max(max(color.r, color.g), color.b);
-			float minVal = min(min(color.r, color.g), color.b);
-			vec3 adjusted = (color - mix(vec3(minVal), vec3(maxVal), 0.5)) * adjustment + color;
-			return clamp(adjusted, 0.0, 1.0);
-		}
+		uniform vec3 uPointLightPosition0;
+		uniform vec3 uPointLightPosition1;
+		uniform vec3 uPointLightColor0;
+		uniform vec3 uPointLightColor1;
+		uniform float uPointLightRange0;
+		uniform float uPointLightRange1;
+		uniform float uPointLightConstant0;
+		uniform float uPointLightConstant1;
+		uniform float uPointLightLinear0;
+		uniform float uPointLightLinear1;
+		uniform float uPointLightQuadratic0;
+		uniform float uPointLightQuadratic1;
+		uniform bool uPointLightEnabled0;
+		uniform bool uPointLightEnabled1;
 
-		vec3 enhanceColor(vec3 color) {
-			// Increase saturation
-			vec3 saturated = saturate(color, 0.5);
+		// Fog uniforms
+		uniform bool uFogUse;
+		uniform float uFogNear;
+		uniform float uFogFar;
+		uniform vec3 uFogColor;
 
-			// Slightly boost brightness while preserving contrast
-			return saturated * 1.0;
+		// Transition factor
+		uniform float uTransitionFactor;  // 0.0 to 1.0
+
+		// Calculate point light contribution
+		vec3 calculatePointLight(vec3 position, vec3 color, float range,
+							   float constant, float linear, float quadratic,
+							   bool enabled, vec3 normal, vec3 fragPos) {
+			if (!enabled) {
+				return vec3(0.0);
+			}
+
+			vec3 lightDir = position - fragPos;
+			float distance = length(lightDir);
+
+			if (distance > range) {
+				return vec3(0.0);
+			}
+
+			lightDir = normalize(lightDir);
+			float diff = max(dot(normal, lightDir), 0.0) * 0.5;
+
+			float attenuation = 1.0 / (
+				constant +
+				linear * distance * 2.0 +
+				quadratic * distance * distance * 1.5
+			);
+
+			return color * diff * attenuation * 0.7;
 		}
 
 		void main(void) {
@@ -172,34 +225,43 @@ function(      WebGL,         Texture,   Preferences )
 				discard;
 			}
 
-			if (vTileColorCoord.st != vec2(0.0,0.0)) {
+			// Apply tile color if available
+			if (vTileColorCoord.st != vec2(0.0, 0.0)) {
 				texture *= texture2D(uTileColor, vTileColorCoord.st);
 				lightWeight = vLightWeighting;
 			}
 
-			vec3 Ambient = uLightAmbient * uLightOpacity;
-			vec3 Diffuse = uLightDiffuse * lightWeight;
+			// Calculate directional light with transition
+			float dayFactor = uTransitionFactor;
+			vec3 directionalLight = uLightDiffuse * (lightWeight * 0.8 * dayFactor);
+			vec3 ambient = uLightAmbient * (uLightOpacity * 0.7 * max(dayFactor, 0.2));
 
-			vec3 customEffect = vec3(vCustomValue * uEffectStrength);
+			// Calculate point lights contribution
+			vec3 pointLightContribution = vec3(0.0);
+			vec3 normal = normalize(vNormal);
 
-			if (uLightMapUse) {
-				vec4 lightmap = texture2D(uLightmap, vLightmapCoord.st);
-				vec4 LightColor = vec4((Ambient + Diffuse) * lightmap.a, 1.0);
-				vec4 ColorMap = vec4(lightmap.rgb, 0.0);
+			// Add first point light
+			pointLightContribution += calculatePointLight(
+				uPointLightPosition0, uPointLightColor0, uPointLightRange0,
+				uPointLightConstant0, uPointLightLinear0, uPointLightQuadratic0,
+				uPointLightEnabled0, normal, vFragPos
+			);
 
-				// Apply color enhancement
-				vec3 enhancedColor = enhanceColor(texture.rgb);
-				gl_FragColor = vec4(enhancedColor, texture.a) * clamp(LightColor, 0.0, 1.0) + ColorMap;
-				gl_FragColor.rgb += customEffect;
-			}
-			else {
-					vec4 LightColor = vec4(Ambient + Diffuse, 1.0);
-					// Apply color enhancement
-					vec3 enhancedColor = enhanceColor(texture.rgb);
-					gl_FragColor = vec4(enhancedColor, texture.a) * clamp(LightColor, 0.0, 1.0);
-					gl_FragColor.rgb += customEffect;
-			}
+			// Add second point light
+			pointLightContribution += calculatePointLight(
+				uPointLightPosition1, uPointLightColor1, uPointLightRange1,
+				uPointLightConstant1, uPointLightLinear1, uPointLightQuadratic1,
+				uPointLightEnabled1, normal, vFragPos
+			);
 
+			// Combine all lighting
+			vec3 lighting = ambient + directionalLight + pointLightContribution;
+
+			// Apply lighting to texture
+			vec3 enhancedColor = texture.rgb;
+			gl_FragColor = vec4(enhancedColor * lighting, texture.a);
+
+			// Apply fog if enabled
 			if (uFogUse) {
 				float depth = gl_FragCoord.z / gl_FragCoord.w;
 				float fogFactor = smoothstep(uFogNear, uFogFar, depth);
@@ -222,19 +284,74 @@ function(      WebGL,         Texture,   Preferences )
 	{
 		var uniform = _program.uniform;
 		var attribute = _program.attribute;
+		var currentTime = performance.now();
+
+		// Check if we need to start a transition
+		if (Session.mapState.isNight !== _transitionFromNight && !_isTransitioning) {
+			_transitionStartTime = currentTime;
+			_isTransitioning = true;
+			_transitionFromNight = Session.mapState.isNight;
+		}
+
+		// Calculate transition factor
+		var transitionFactor;
+		if (_isTransitioning) {
+			var elapsed = currentTime - _transitionStartTime;
+			var progress = Math.min(elapsed / TRANSITION_DURATION, 1.0);
+
+			if (progress >= 1.0) {
+				_isTransitioning = false;
+				transitionFactor = _transitionFromNight ? 0.3 : 1.0; // Final values
+			} else {
+				// Smooth transition using sine
+				var smoothProgress = (Math.sin(progress * Math.PI - Math.PI / 2) + 1) / 2;
+				transitionFactor = _transitionFromNight ?
+					1.0 - (smoothProgress * 0.7) : // Transition to 0.3 for night
+					0.3 + (smoothProgress * 0.7);  // Transition to 1.0 for day
+			}
+		} else {
+			transitionFactor = Session.mapState.isNight ? 0.3 : 1.0;
+		}
 
 		gl.useProgram( _program );
 
-		// Bind matrix
-		gl.uniformMatrix4fv( uniform.uModelViewMat,  false, modelView );
+		// Bind matrices
+		gl.uniformMatrix4fv(uniform.uModelViewMat, false, modelView);
 		gl.uniformMatrix4fv( uniform.uProjectionMat, false, projection );
-		gl.uniformMatrix3fv( uniform.uNormalMat,     false, normalMat );
+		gl.uniformMatrix3fv(uniform.uNormalMat, false, normalMat);
 
-		// Bind light
+		// Bind directional light
 		gl.uniform3fv( uniform.uLightDirection, light.direction );
-		gl.uniform1f(  uniform.uLightOpacity,   light.opacity );
-		gl.uniform3fv( uniform.uLightAmbient,   light.ambient );
-		gl.uniform3fv( uniform.uLightDiffuse,   light.diffuse );
+		gl.uniform3fv(uniform.uLightAmbient, light.ambient);
+		gl.uniform3fv(uniform.uLightDiffuse, light.diffuse);
+		gl.uniform1f(uniform.uLightOpacity, light.opacity);
+
+		// Bind point lights
+		gl.uniform1i(uniform.uNumPointLights, Math.min(light.pointLights.length, 2));
+
+		// Bind first point light if available
+		if (light.pointLights.length > 0) {
+			const light0 = light.pointLights[0];
+			gl.uniform3fv(uniform.uPointLightPosition0, light0.position);
+			gl.uniform3fv(uniform.uPointLightColor0, light0.color);
+			gl.uniform1f(uniform.uPointLightRange0, light0.range);
+			gl.uniform1f(uniform.uPointLightConstant0, light0.attenuation.constant);
+			gl.uniform1f(uniform.uPointLightLinear0, light0.attenuation.linear);
+			gl.uniform1f(uniform.uPointLightQuadratic0, light0.attenuation.quadratic);
+			gl.uniform1i(uniform.uPointLightEnabled0, light0.enabled ? 1 : 0);
+		}
+
+		// Bind second point light if available
+		if (light.pointLights.length > 1) {
+			const light1 = light.pointLights[1];
+			gl.uniform3fv(uniform.uPointLightPosition1, light1.position);
+			gl.uniform3fv(uniform.uPointLightColor1, light1.color);
+			gl.uniform1f(uniform.uPointLightRange1, light1.range);
+			gl.uniform1f(uniform.uPointLightConstant1, light1.attenuation.constant);
+			gl.uniform1f(uniform.uPointLightLinear1, light1.attenuation.quadratic);
+			gl.uniform1f(uniform.uPointLightQuadratic1, light1.attenuation.quadratic);
+			gl.uniform1i(uniform.uPointLightEnabled1, light1.enabled ? 1 : 0);
+		}
 
 		// Render lightmap ?
 		gl.uniform1i(  uniform.uLightMapUse, Preferences.lightmap );
@@ -244,6 +361,9 @@ function(      WebGL,         Texture,   Preferences )
 		gl.uniform1f(  uniform.uFogNear,  fog.near );
 		gl.uniform1f(  uniform.uFogFar,   fog.far  );
 		gl.uniform3fv( uniform.uFogColor, fog.color );
+
+		// Pass transition factor to shader
+		gl.uniform1f(uniform.uTransitionFactor, transitionFactor);
 
 		// Enable all attributes
 		gl.enableVertexAttribArray( attribute.aPosition );
@@ -474,7 +594,7 @@ function(      WebGL,         Texture,   Preferences )
 
 		// Link program	if not loaded
 		if (!_program) {
-			_program = WebGL.createShaderProgram( gl, _vertexShader, _fragmentShader );
+			_program = WebGL.createShaderProgram(gl, _vertexShader, _fragmentShader);
 		}
 
 		gl.bindBuffer( gl.ARRAY_BUFFER, _buffer );

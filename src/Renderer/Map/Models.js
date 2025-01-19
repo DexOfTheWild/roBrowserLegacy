@@ -7,7 +7,7 @@
  *
  * @author Vincent Thibault
  */
-define( ['Utils/WebGL'], function( WebGL )
+define(['Utils/WebGL', 'Engine/SessionStorage'], function (WebGL, Session)
 {
 	'use strict';
 
@@ -31,11 +31,33 @@ define( ['Utils/WebGL'], function( WebGL )
 
 
 	/**
+	 * @var {number} Transition start time
+	 */
+	var _transitionStartTime = 0;
+
+
+	/**
+	 * @var {boolean} Is transitioning
+	 */
+	var _isTransitioning = false;
+
+
+	/**
+	 * @var {boolean} Transition from night
+	 */
+	var _transitionFromNight = false;
+
+
+	/**
+	 * @var {number} Transition duration
+	 */
+	var TRANSITION_DURATION = 10000; // 10 seconds in milliseconds
+
+
+	/**
 	 * @var {string} vertex shader
 	 */
-	var _vertexShader   = `
-		#version 100
-		#pragma vscode_glsllint_stage : vert
+	var _vertexShader = `
 		precision highp float;
 
 		attribute vec3 aPosition;
@@ -44,25 +66,31 @@ define( ['Utils/WebGL'], function( WebGL )
 		attribute float aAlpha;
 
 		varying vec2 vTextureCoord;
-		varying float vLightWeighting;
+		varying vec3 vNormal;
+		varying vec3 vFragPos;
 		varying float vAlpha;
+		varying float vLightWeighting;
 
 		uniform mat4 uModelViewMat;
 		uniform mat4 uProjectionMat;
-
-		uniform vec3 uLightDirection;
 		uniform mat3 uNormalMat;
+		uniform vec3 uLightDirection;
 
 		void main(void) {
-			gl_Position     = uProjectionMat * uModelViewMat * vec4( aPosition, 1.0);
+			vec4 worldPos = uModelViewMat * vec4(aPosition, 1.0);
+			gl_Position = uProjectionMat * worldPos;
 
-			vTextureCoord   = aTextureCoord;
-			vAlpha          = aAlpha;
+			// Pass position and normal to fragment shader
+			vFragPos = worldPos.xyz;
+			vNormal = uNormalMat * aVertexNormal;
 
-			vec4 lDirection  = uModelViewMat * vec4( uLightDirection, 0.0);
-			vec3 dirVector   = normalize(lDirection.xyz);
-			float dotProduct = dot( uNormalMat * aVertexNormal, dirVector );
-			vLightWeighting  = max( dotProduct, 0.5 );
+			vTextureCoord = aTextureCoord;
+			vAlpha = aAlpha;
+
+			// Calculate directional light weighting
+			vec4 lDirection = uModelViewMat * vec4(uLightDirection, 0.0);
+			vec3 dirVector = normalize(lDirection.xyz);
+			vLightWeighting = max(dot(vNormal, dirVector), 0.1);
 		}
 	`;
 		
@@ -70,37 +98,72 @@ define( ['Utils/WebGL'], function( WebGL )
 	 * @var {string} fragment shader
 	 */
 	var _fragmentShader = `
-		#version 100
-		#pragma vscode_glsllint_stage : frag
 		precision highp float;
 
 		varying vec2 vTextureCoord;
-		varying float vLightWeighting;
+		varying vec3 vNormal;
+		varying vec3 vFragPos;
 		varying float vAlpha;
+		varying float vLightWeighting;
 
 		uniform sampler2D uDiffuse;
 
-		uniform bool  uFogUse;
-		uniform float uFogNear;
-		uniform float uFogFar;
-		uniform vec3  uFogColor;
-
-		uniform vec3  uLightAmbient;
-		uniform vec3  uLightDiffuse;
+		// Directional light uniforms
+		uniform vec3 uLightDirection;
+		uniform vec3 uLightAmbient;
+		uniform vec3 uLightDiffuse;
 		uniform float uLightOpacity;
 
-		// Add color enhancement functions
-		vec3 saturate(vec3 color, float adjustment) {
-			float maxVal = max(max(color.r, color.g), color.b);
-			float minVal = min(min(color.r, color.g), color.b);
-			vec3 adjusted = (color - mix(vec3(minVal), vec3(maxVal), 0.5)) * adjustment + color;
-			return clamp(adjusted, 0.0, 1.0);
-		}
+		// Point light uniforms
+		uniform vec3 uPointLightPosition0;
+		uniform vec3 uPointLightPosition1;
+		uniform vec3 uPointLightColor0;
+		uniform vec3 uPointLightColor1;
+		uniform float uPointLightRange0;
+		uniform float uPointLightRange1;
+		uniform float uPointLightConstant0;
+		uniform float uPointLightConstant1;
+		uniform float uPointLightLinear0;
+		uniform float uPointLightLinear1;
+		uniform float uPointLightQuadratic0;
+		uniform float uPointLightQuadratic1;
+		uniform bool uPointLightEnabled0;
+		uniform bool uPointLightEnabled1;
 
-		vec3 enhanceColor(vec3 color) {
-			// Increase saturation and add slight brightness boost
-			vec3 saturated = saturate(color, 0.5);
-			return saturated * 1.0;
+		// Fog uniforms
+		uniform bool uFogUse;
+		uniform float uFogNear;
+		uniform float uFogFar;
+		uniform vec3 uFogColor;
+
+		// Add transition factor uniform
+		uniform float uTransitionFactor;
+
+		// Calculate point light contribution
+		vec3 calculatePointLight(vec3 position, vec3 color, float range,
+							   float constant, float linear, float quadratic,
+							   bool enabled, vec3 normal, vec3 fragPos) {
+			if (!enabled) {
+				return vec3(0.0);
+			}
+
+			vec3 lightDir = position - fragPos;
+			float distance = length(lightDir);
+
+			if (distance > range) {
+				return vec3(0.0);
+			}
+
+			lightDir = normalize(lightDir);
+			float diff = max(dot(normal, lightDir), 0.0) * 0.5;
+
+			float attenuation = 1.0 / (
+				constant +
+				linear * distance * 2.0 +
+				quadratic * distance * distance * 1.5
+			);
+
+			return color * diff * attenuation * 0.7;
 		}
 
 		void main(void) {
@@ -110,15 +173,35 @@ define( ['Utils/WebGL'], function( WebGL )
 				discard;
 			}
 
-			vec3 Ambient = uLightAmbient * uLightOpacity;
-			vec3 Diffuse = uLightDiffuse * vLightWeighting;
-			vec4 LightColor = vec4(Ambient + Diffuse, 1.0);
+			// Calculate directional light with transition
+			vec3 directionalLight = uLightDiffuse * (vLightWeighting * 0.8 * uTransitionFactor);
+			vec3 ambient = uLightAmbient * (uLightOpacity * 0.7 * max(uTransitionFactor, 0.2));
 
-			// Apply color enhancement
-			vec3 enhancedColor = enhanceColor(texture.rgb);
-			gl_FragColor = vec4(enhancedColor, texture.a) * clamp(LightColor, 0.0, 1.0);
-			gl_FragColor.a *= vAlpha;
+			// Calculate point lights contribution
+			vec3 pointLightContribution = vec3(0.0);
+			vec3 normal = normalize(vNormal);
 
+			// Add first point light
+			pointLightContribution += calculatePointLight(
+				uPointLightPosition0, uPointLightColor0, uPointLightRange0,
+				uPointLightConstant0, uPointLightLinear0, uPointLightQuadratic0,
+				uPointLightEnabled0, normal, vFragPos
+			);
+
+			// Add second point light
+			pointLightContribution += calculatePointLight(
+				uPointLightPosition1, uPointLightColor1, uPointLightRange1,
+				uPointLightConstant1, uPointLightLinear1, uPointLightQuadratic1,
+				uPointLightEnabled1, normal, vFragPos
+			);
+
+			// Combine all lighting
+			vec3 lighting = ambient + directionalLight + pointLightContribution;
+
+			// Apply lighting to texture
+			gl_FragColor = vec4(texture.rgb * lighting, texture.a * vAlpha);
+
+			// Apply fog if enabled
 			if (uFogUse) {
 				float depth = gl_FragCoord.z / gl_FragCoord.w;
 				float fogFactor = smoothstep(uFogNear, uFogFar, depth);
@@ -203,28 +286,85 @@ define( ['Utils/WebGL'], function( WebGL )
 	 */
 	function render( gl, modelView, projection, normalMat, fog, light )
 	{
-		var uniform   = _program.uniform;
+		var uniform = _program.uniform;
 		var attribute = _program.attribute;
-		var i, count;
+		var currentTime = performance.now();
+
+		// Check if we need to start a transition
+		if (Session.mapState.isNight !== _transitionFromNight && !_isTransitioning) {
+			_transitionStartTime = currentTime;
+			_isTransitioning = true;
+			_transitionFromNight = Session.mapState.isNight;
+		}
+
+		// Calculate transition factor
+		var transitionFactor;
+		if (_isTransitioning) {
+			var elapsed = currentTime - _transitionStartTime;
+			var progress = Math.min(elapsed / TRANSITION_DURATION, 1.0);
+
+			if (progress >= 1.0) {
+				_isTransitioning = false;
+				transitionFactor = _transitionFromNight ? 0.3 : 1.0; // Final values
+			} else {
+				// Smooth transition using sine
+				var smoothProgress = (Math.sin(progress * Math.PI - Math.PI / 2) + 1) / 2;
+				transitionFactor = _transitionFromNight ?
+					1.0 - (smoothProgress * 0.7) : // Transition to 0.3 for night
+					0.3 + (smoothProgress * 0.7);  // Transition to 1.0 for day
+			}
+		} else {
+			transitionFactor = Session.mapState.isNight ? 0.3 : 1.0;
+		}
 
 		gl.useProgram( _program );
 
-		// Bind matrix
-		gl.uniformMatrix4fv( uniform.uModelViewMat,  false, modelView );
+		// Bind matrices
+		gl.uniformMatrix4fv(uniform.uModelViewMat, false, modelView);
 		gl.uniformMatrix4fv( uniform.uProjectionMat, false, projection );
-		gl.uniformMatrix3fv( uniform.uNormalMat,     false, normalMat );
+		gl.uniformMatrix3fv(uniform.uNormalMat, false, normalMat);
 
-		// Bind light
+		// Bind directional light
 		gl.uniform3fv( uniform.uLightDirection, light.direction );
-		gl.uniform1f(  uniform.uLightOpacity,   light.opacity );
-		gl.uniform3fv( uniform.uLightAmbient,   light.ambient );
-		gl.uniform3fv( uniform.uLightDiffuse,   light.diffuse );
+		gl.uniform3fv(uniform.uLightAmbient, light.ambient);
+		gl.uniform3fv(uniform.uLightDiffuse, light.diffuse);
+		gl.uniform1f(uniform.uLightOpacity, light.opacity);
 
-		// Fog settings
-		gl.uniform1i(  uniform.uFogUse,   fog.use && fog.exist );
-		gl.uniform1f(  uniform.uFogNear,  fog.near );
-		gl.uniform1f(  uniform.uFogFar,   fog.far );
+		// Bind point lights
+		if (light.pointLights && light.pointLights.length > 0) {
+			const light0 = light.pointLights[0];
+			gl.uniform3fv(uniform.uPointLightPosition0, light0.position);
+			gl.uniform3fv(uniform.uPointLightColor0, light0.color);
+			gl.uniform1f(uniform.uPointLightRange0, light0.range);
+			gl.uniform1f(uniform.uPointLightConstant0, light0.attenuation.constant);
+			gl.uniform1f(uniform.uPointLightLinear0, light0.attenuation.linear);
+			gl.uniform1f(uniform.uPointLightQuadratic0, light0.attenuation.quadratic);
+			gl.uniform1i(uniform.uPointLightEnabled0, light0.enabled ? 1 : 0);
+		} else {
+			gl.uniform1i(uniform.uPointLightEnabled0, 0);
+		}
+
+		if (light.pointLights && light.pointLights.length > 1) {
+			const light1 = light.pointLights[1];
+			gl.uniform3fv(uniform.uPointLightPosition1, light1.position);
+			gl.uniform3fv(uniform.uPointLightColor1, light1.color);
+			gl.uniform1f(uniform.uPointLightRange1, light1.range);
+			gl.uniform1f(uniform.uPointLightConstant1, light1.attenuation.constant);
+			gl.uniform1f(uniform.uPointLightLinear1, light1.attenuation.linear);
+			gl.uniform1f(uniform.uPointLightQuadratic1, light1.attenuation.quadratic);
+			gl.uniform1i(uniform.uPointLightEnabled1, light1.enabled ? 1 : 0);
+		} else {
+			gl.uniform1i(uniform.uPointLightEnabled1, 0);
+		}
+
+		// Bind fog uniforms
+		gl.uniform1i(uniform.uFogUse, fog.use && fog.exist);
+		gl.uniform1f(uniform.uFogNear, fog.near);
+		gl.uniform1f(uniform.uFogFar, fog.far);
 		gl.uniform3fv( uniform.uFogColor, fog.color );
+
+		// Pass transition factor to shader
+		gl.uniform1f(uniform.uTransitionFactor, transitionFactor);
 
 		// Enable all attributes
 		gl.enableVertexAttribArray( attribute.aPosition );
@@ -244,7 +384,7 @@ define( ['Utils/WebGL'], function( WebGL )
 		gl.activeTexture( gl.TEXTURE0 );
 		gl.uniform1i( uniform.uDiffuse, 0 );
 
-		for (i = 0, count = _objects.length; i < count; ++i) {
+		for (var i = 0, count = _objects.length; i < count; ++i) {
 			if (_objects[i].complete) {
 				gl.bindTexture( gl.TEXTURE_2D, _objects[i].texture );
 				gl.drawArrays(  gl.TRIANGLES,  _objects[i].vertOffset, _objects[i].vertCount );

@@ -81,6 +81,37 @@ define( ['Utils/BinaryReader', 'Utils/gl-matrix'], function( BinaryReader, glMat
 
 
 	/**
+	 * Normalize color values from long to float [0,1]
+	 */
+	function normalizeColor(color) {
+		return [
+			Math.min(color[0], 255) / 255,
+			Math.min(color[1], 255) / 255,
+			Math.min(color[2], 255) / 255
+		];
+	}
+
+
+	/**
+	 * Process point light data
+	 */
+	function processPointLight(light) {
+		return {
+			name: light.name,
+			position: light.pos,
+			color: normalizeColor(light.color),
+			range: light.range,
+			attenuation: {
+				constant: 1.0,
+				linear: 0.14,
+				quadratic: 0.07
+			},
+			type: 'POINT'
+		};
+	}
+
+
+	/**
 	 * Start loading RSW file
 	 *
 	 * @param {ArrayBuffer} data
@@ -175,12 +206,12 @@ define( ['Utils/BinaryReader', 'Utils/gl-matrix'], function( BinaryReader, glMat
 					continue;
 
 				case 2:
-					lights[l++] = {
-						name:    fp.readBinaryString(80),
-						pos:   [ fp.readFloat()/5, fp.readFloat()/5, fp.readFloat()/5 ],
-						color: [ fp.readLong(),    fp.readLong(),    fp.readLong()  ],
-						range:   fp.readFloat()
-					};
+					lights[l++] = processPointLight({
+						name: fp.readBinaryString(80),
+						pos: [fp.readFloat() / 5, fp.readFloat() / 5, fp.readFloat() / 5],
+						color: [fp.readLong(), fp.readLong(), fp.readLong()],
+						range: fp.readFloat()
+					});
 					continue;
 
 				case 3:
@@ -223,9 +254,27 @@ define( ['Utils/BinaryReader', 'Utils/gl-matrix'], function( BinaryReader, glMat
 	 */
 	RSW.prototype.compile = function Compile()
 	{
+		// Calculate global light direction based on longitude and latitude
+		var longitude = this.light.longitude * Math.PI / 180;
+		var latitude = this.light.latitude * Math.PI / 180;
+
+		this.light.direction[0] = Math.cos(longitude) * Math.cos(latitude);
+		this.light.direction[1] = Math.sin(latitude);
+		this.light.direction[2] = Math.sin(longitude) * Math.cos(latitude);
+
+		// Normalize the direction vector
+		glMatrix.vec3.normalize(this.light.direction, this.light.direction);
+
 		return {
 			water: this.water,
-			light: this.light,
+			light: {
+				...this.light,
+				type: 'DIRECTIONAL'  // Flag to identify light type
+			},
+			pointLights: this.lights.map(light => ({
+				...light,
+				enabled: true  // Add enabled flag for dynamic toggling
+			})),
 			sound: this.sounds,
 			effect: this.effects
 		};
