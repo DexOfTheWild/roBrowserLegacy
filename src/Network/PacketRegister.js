@@ -772,6 +772,7 @@ define( ['./PacketStructure' ], function( PACKET )
 		0x84a: PACKET.CZ.CASH_SHOP_CLOSE, // FIXME, duplicate entry with PACKET.CZ.NPC_TRADE_QUIT, it will override this line
 		0x84a: PACKET.CZ.NPC_TRADE_QUIT,
 		0xae2: PACKET.ZC.UI_OPEN,
-		0x9cd: PACKET.ZC.MSG_COLOR
+		0x9cd: PACKET.ZC.MSG_COLOR,
+		0x8f0: PACKET.ZC.GATHER_RESULT
 	};
 });

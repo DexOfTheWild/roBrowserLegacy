@@ -200,6 +200,7 @@ define(function( require )
 				if (!NpcBox.ui || !NpcBox.ui.is(':visible')) {
 					// Add pre-interaction hook
 					if (NPCInterceptor.onPreInteract(this) === false) {
+						console.log('[Interceptor] Pre-interaction hook returned false, skipping interaction');
 						return true;
 					}
 

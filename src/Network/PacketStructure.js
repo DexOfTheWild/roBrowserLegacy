@@ -14248,6 +14248,14 @@ define(['Utils/BinaryWriter', './PacketVerManager', 'Utils/Struct', 'Core/Config
 		return pkt_buf;
 	};
 
+	// 0x8f0
+	PACKET.ZC.GATHER_RESULT = function PACKET_ZC_GATHER_RESULT(fp, end) {
+		this.nodeId = fp.readULong();        // uint32 - 4 bytes
+		this.gathersLeft = fp.readUShort();  // uint16 - 2 bytes
+		this.success = fp.readUChar();       // uint8  - 1 byte
+	};
+	PACKET.ZC.GATHER_RESULT.size = 9;  // 2 (header) + 4 + 2 + 1 = 9 bytes
+
 
 	/**
 	 * Export
