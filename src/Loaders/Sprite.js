@@ -210,7 +210,7 @@ define( ['Utils/BinaryReader'], function( BinaryReader )
 			out = new Uint8Array(width * height * 4);
 
 			// Enhanced color conversion with gamma correction
-			const gamma = 2.2;
+			const gamma = 1.2;
 			for (y = 0; y < height; ++y) {
 				for (x = 0; x < width; ++x) {
 					var idx1 = data[x + y * width] * 4;
