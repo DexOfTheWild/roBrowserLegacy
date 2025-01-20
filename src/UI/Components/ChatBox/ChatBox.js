@@ -388,6 +388,24 @@ define(function(require)
 
 		// dialog box size
 		makeResizableDiv()
+
+		// Add click handler on the whole document
+		jQuery(document).on('mousedown.chatbox', function (e) {
+			// If we click outside chatbox
+			if (!jQuery(e.target).closest('#chatbox').length) {
+				// Hide input, show battlemode
+				ChatBox.ui.find('.input').hide();
+				ChatBox.ui.find('.battlemode').show();
+
+				// Update chat mode icon
+				Client.loadFile(DB.INTERFACE_PATH + 'basic_interface/chatmode_off.bmp', function (data) {
+					ChatBox.ui.find('.chat-function .chatmode').css('backgroundImage', 'url(' + data + ')');
+				});
+			}
+		});
+
+		// Remove the problematic blur handlers
+		this.ui.find('.input .message, .input .username').off('blur');
 	};
 
 
@@ -575,6 +593,9 @@ define(function(require)
 
 		this.lastTabID = -1;
 		this.activeTab = 0;
+
+		// Remove our document click handler
+		jQuery(document).off('mousedown.chatbox');
 	};
 
 
@@ -614,9 +635,6 @@ define(function(require)
 
 	/**
 	 * Key Event Handler
-	 *
-	 * @param {object} event - KeyEventHandler
-	 * @return {boolean}
 	 */
 	ChatBox.onKeyDown = function OnKeyDown( event )
 	{
@@ -625,8 +643,8 @@ define(function(require)
 		this.ui.find('.header tr td div.on input').on('keyup', function(){
 			ChatBoxSettings.updateTab(ChatBox.activeTab, this.value);
 		});
-		switch (event.which) {
 
+		switch (event.which) {
 			// Battle mode system
 			default:
 				if ((event.target.tagName && !event.target.tagName.match(/input|select|textarea/i)) || (event.which >= KEYS.F1 && event.which <= KEYS.F24) || KEYS.ALT || KEYS.SHIFT || KEYS.CTRL){
@@ -687,8 +705,22 @@ define(function(require)
 				this.ui.find('.content')[this.activeTab].scrollTop = this.ui.find('.content')[this.activeTab].scrollHeight;
 				break;
 
-			// Send message
+			// Send message or open chat
 			case KEYS.ENTER:
+				// If input is hidden, show it and focus
+				if (!this.ui.find('.input').is(':visible')) {
+					this.ui.find('.input').show();
+					this.ui.find('.battlemode').hide();
+					messageBox.focus();
+
+					// Update chat mode icon
+					Client.loadFile(DB.INTERFACE_PATH + 'basic_interface/chatmode_on.bmp', function (data) {
+						this.ui.find('.chat-function .chatmode').css('backgroundImage', 'url(' + data + ')');
+					}.bind(this));
+
+					return false;
+				}
+
 				if (document.activeElement.tagName === 'INPUT' &&
 				    document.activeElement !== messageBox[0]) {
 					return true;
@@ -709,6 +741,11 @@ define(function(require)
 
 	ChatBox.toggleChat = function toggleChat(){
 		var messageBox = this.ui.find('.input .message');
+
+		// Only handle if input is visible
+		if (!this.ui.find('.input').is(':visible')) {
+			return true;
+		}
 
 		if (document.activeElement.tagName === 'INPUT' &&
 		    document.activeElement !== messageBox[0]) {
