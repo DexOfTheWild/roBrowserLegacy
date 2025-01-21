@@ -15,6 +15,9 @@ define(function (require)
 	var WinLogin = require('./WinLogin/WinLogin');
 	var WinLoginV2 = require('./WinLoginV2/WinLoginV2');
 	
+	WinLogin.closeOnEsc = false;
+	WinLoginV2.closeOnEsc = false;
+
 	var UIVersionManager = require('UI/UIVersionManager');
 	
 	var versionInfo = {

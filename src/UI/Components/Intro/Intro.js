@@ -32,7 +32,7 @@ define(function(require)
 	 * Create Intro component
 	 */
 	var Intro = new UIComponent( 'Intro', htmlText, cssText );
-
+	Intro.closeOnEsc = false;
 
 	/**
 	 * @var {FileList}

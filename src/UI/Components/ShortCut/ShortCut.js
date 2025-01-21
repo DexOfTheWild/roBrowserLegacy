@@ -43,6 +43,7 @@ define(function(require)
 	 */
 	var ShortCut = new UIComponent( 'ShortCut', htmlText, cssText );
 
+	ShortCut.closeOnEsc = false;
 
 	/**
 	 * @var {Array} ShortCut list

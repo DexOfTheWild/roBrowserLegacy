@@ -27,7 +27,7 @@ define(function (require) {
 	var ShortCutsTemp = {};
 	
 	ShortCutOption.isCapturing = false;
-	
+	ShortCutOption.closeOnEsc = false;
 	/**
 	 * @var {Preferences} structure
 	 */

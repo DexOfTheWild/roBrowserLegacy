@@ -29,7 +29,7 @@ define(function(require)
 	 * Create NpcBox component
 	 */
 	var InputBox = new UIComponent('InputBox', htmlText, cssText, { htmlTarget: '#DialogueBox' });
-
+	InputBox.closeOnEsc = false;
 
 	/**
 	 * Initialize GUI

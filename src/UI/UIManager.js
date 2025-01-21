@@ -18,6 +18,7 @@ define(function( require )
 	var KEYS        = require('Controls/KeyEventHandler');
 	var Renderer    = require('Renderer/Renderer');
 	var getModule   = require;
+	var ZIndexManager = require('./ZIndexManager');
 
 
 	/**
@@ -25,18 +26,25 @@ define(function( require )
 	 */
 	var UIManager = {};
 
-
 	/**
 	 * Components cache
-	 * @var {array} Components List
+	 * @var {Object} Components List
 	 */
 	UIManager.components = {};
 
+	/**
+	 * Initialize UI Manager
+	 */
+	UIManager.init = function init() {
+		// Initialize ZIndexManager with this manager instance
+		ZIndexManager.init(this);
+	};
 
 	/**
 	 * Store a component in the manager
 	 *
 	 * @param {UIComponent} component object
+	 * @throws {Error} if component is invalid
 	 */
 	UIManager.addComponent = function addComponent( component )
 	{
@@ -44,8 +52,19 @@ define(function( require )
 			throw new Error('UIManager::addComponent() - Invalid type of component');
 		}
 
+		// Generate unique ID if not present
+		if (!component.uid) {
+			component.uid = 'component_' + Math.random().toString(36).substr(2, 9);
+		}
+
 		component.manager = this;
 		this.components[ component.name ] = component;
+
+		// Let ZIndexManager know about the new component
+		if (component.__visible) {
+			ZIndexManager.onShowComponent(component);
+		}
+
 		return component;
 	};
 
@@ -55,6 +74,7 @@ define(function( require )
 	 *
 	 * @param {string} component name
 	 * @return {UIComponent} object
+	 * @throws {Error} if component not found
 	 */
 	UIManager.getComponent = function getComponent( name )
 	{
@@ -82,6 +102,9 @@ define(function( require )
 		for (i = 0; i < count; ++i) {
 			this.components[ keys[i] ].remove();
 		}
+
+		// Clean up ZIndexManager
+		ZIndexManager.removeComponents();
 	};
 
 
@@ -330,6 +353,8 @@ define(function( require )
 		return WinPrompt;
 	};
 
+	// Initialize the manager
+	UIManager.init();
 
 	/**
 	 * Export

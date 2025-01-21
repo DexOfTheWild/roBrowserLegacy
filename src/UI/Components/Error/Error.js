@@ -25,6 +25,7 @@ define(function( require )
 	 * Error Namespace
 	 */
 	var Error = {};
+	Error.closeOnEsc = false;
 
 
 	/**

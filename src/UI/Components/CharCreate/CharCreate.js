@@ -17,6 +17,11 @@ define(function (require)
 	var CharCreateV3 = require('./CharCreatev3/CharCreatev3');
 	var CharCreateV4 = require('./CharCreatev4/CharCreatev4');
 	
+	CharCreate.closeOnEsc = false;
+	CharCreateV2.closeOnEsc = false;
+	CharCreateV3.closeOnEsc = false;
+	CharCreateV4.closeOnEsc = false;
+
 	var UIVersionManager = require('UI/UIVersionManager');
 	
 	var versionInfo = {

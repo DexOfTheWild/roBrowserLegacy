@@ -84,6 +84,8 @@ define(function(require)
 	 */
 	var ChatBox = new UIComponent( 'ChatBox', htmlText, cssText );
 
+	ChatBox.closeOnEsc = false;
+
 
 	/**
 	 * Constants

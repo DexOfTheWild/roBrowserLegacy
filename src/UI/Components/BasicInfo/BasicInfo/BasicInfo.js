@@ -335,6 +335,7 @@ define(function(require)
 		}
 	};
 
+	BasicInfo.closeOnEsc = false;
 
 	/**
 	 * Create component and export it

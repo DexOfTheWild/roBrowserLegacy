@@ -30,7 +30,7 @@ define(function( require )
 	 * Create component
 	 */
 	var StatusIcons = new UIComponent( 'StatusIcons', null, cssText);
-
+	StatusIcons.closeOnEsc = false;
 
 	/**
 	 * Mouse can cross this UI

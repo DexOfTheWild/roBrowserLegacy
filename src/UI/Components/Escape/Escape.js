@@ -25,6 +25,7 @@ define(function(require)
 	var MobileUI = require('UI/Components/MobileUI/MobileUI');
 	var htmlText           = require('text!./Escape.html');
 	var cssText            = require('text!./Escape.css');
+	var ZIndexManager = require('UI/ZIndexManager');
 
 
 	/**
@@ -92,9 +93,15 @@ define(function(require)
 	 * @param {object} event
 	 * @return {boolean}
 	 */
-	Escape.onKeyDown = function onKeyDown( event )
+	Escape.onKeyDown = function onKeyDown(event)
 	{
 		if (event.which === KEYS.ESCAPE) {
+			// Check if there are other escapable components that need to be closed first
+			if (ZIndexManager.hasEscapableComponents()) {
+				return true; // Let ZIndexManager handle it
+			}
+
+			// No other components need to be closed, handle normally
 			this.ui.toggle();
 
 			if (this.ui.is(':visible')) {
@@ -182,6 +189,7 @@ define(function(require)
 	 */
 	Escape.onCharSelectionRequest = function onCharSelectionRequest(){};
 
+	Escape.isEscapeMenu = true;
 
 	/**
 	 * Create component and export it

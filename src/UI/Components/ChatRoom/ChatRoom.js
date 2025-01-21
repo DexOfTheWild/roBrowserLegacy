@@ -33,7 +33,7 @@ define(function(require)
 	 * Create Component
 	 */
 	var ChatRoom = new UIComponent( 'ChatRoom', htmlText, cssText );
-
+	ChatRoom.closeOnEsc = false;
 
 	/**
 	 * @var {string} Chat Room title

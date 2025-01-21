@@ -34,6 +34,7 @@
 	  * Create Component
 	  */
 	 var ShortCuts = new UIComponent( 'ShortCuts', htmlText, cssText );
+	 ShortCuts.closeOnEsc = false;
 
 	/**
 	 * @var {Preferences} structure

@@ -30,7 +30,7 @@ define(function(require)
 	const htmlTarget = '#DialogueBox';
 	var NpcMenu = new UIComponent( 'NpcMenu', htmlText, cssText, { htmlTarget } );
 
-
+	NpcMenu.closeOnEsc = false;
 	/**
 	 * @var {number} index selected in menu
 	 */

@@ -29,7 +29,7 @@ define(function(require)
 	 */
 	var NpcBox = new UIComponent( 'NpcBox', htmlText, cssText, { htmlTarget: '#DialogueBox'} );
 
-
+	NpcBox.closeOnEsc = false;
 
 	/**
 	 * @var {boolean} does the box need to be clean up?

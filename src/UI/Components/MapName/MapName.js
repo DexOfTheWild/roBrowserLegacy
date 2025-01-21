@@ -30,6 +30,8 @@ define(function(require)
 	 */
 	var MapName = new UIComponent( 'MapName', htmlText, cssText );
 
+	MapName.closeOnEsc = false;
+
 	/**
 	 * Mouse can cross this UI
 	 */

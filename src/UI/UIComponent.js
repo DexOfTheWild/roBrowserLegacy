@@ -24,6 +24,7 @@ define(function( require )
 	var Targa     = require('Loaders/Targa');
 	var Renderer  = require('Renderer/Renderer');
 	var getModule = require;
+	var ZIndexManager = require('./ZIndexManager');
 
 
 	/**
@@ -94,6 +95,18 @@ define(function( require )
 
 
 	/**
+	 * @var {boolean} whether component can be closed with ESC key
+	 */
+	UIComponent.prototype.closeOnEsc = true;
+
+
+	/**
+	 * @var {boolean} is Component visible?
+	 */
+	UIComponent.prototype.__visible = false;
+
+
+	/**
 	 * Prepare the component to be used
 	 */
 	UIComponent.prototype.prepare = function prepare()
@@ -104,7 +117,7 @@ define(function( require )
 
 		if (this._htmlText) {
 			this.ui = jQuery(this._htmlText);
-			this.ui.css('zIndex', 50);
+			this.ui.css('zIndex', ZIndexManager.BASE_INDEX);
 		}
 
 		// Add style to view
@@ -189,6 +202,36 @@ define(function( require )
 			this.ui.detach();
 		}
 
+		const self = this;  // Store reference to UIComponent instance
+		const oldHide = this.ui.hide;
+		const oldShow = this.ui.show;
+		const oldToggle = this.ui.toggle;
+
+		this.ui.hide = function hide() {
+			oldHide.call(this);  // Maintain proper 'this' context for jQuery
+			self.__visible = false;
+			ZIndexManager.onHideComponent(self);
+			return this;  // Maintain jQuery chainability
+		};
+
+		this.ui.show = function show() {
+			oldShow.call(this);
+			self.__visible = true;
+			ZIndexManager.onShowComponent(self);
+			return this;
+		};
+
+		this.ui.toggle = function toggle() {
+			oldToggle.call(this);
+			self.__visible = this.is(':visible');
+			if (self.__visible) {
+				ZIndexManager.onShowComponent(self);
+			} else {
+				ZIndexManager.onHideComponent(self);
+			}
+			return this;
+		};
+
 		this.__loaded = true;
 	};
 
@@ -211,6 +254,9 @@ define(function( require )
 
 			this.ui.trigger('x_remove');
 			this.ui.detach();
+
+			// Notify ZIndexManager that component is being removed
+			ZIndexManager.removeComponent(this);
 
 			if (this.mouseMode === UIComponent.MouseMode.FREEZE) {
 				Mouse.intersect = true;
@@ -311,50 +357,19 @@ define(function( require )
 
 	/**
 	 * Focus the UI
-	 * (stay at the top of others)
 	 */
 	UIComponent.prototype.focus = function focus()
 	{
-		if (!this.manager || !this.needFocus) {
+		if (!this.manager) {
 			return;
 		}
 
-		var components = this.manager.components;
-		var name, zIndex, list = [];
-		var i, count, j;
-
-		// Store components zIndex in a list
-		for (name in components) {
-			if (this !== components[name] && components[name].__active && components[name].needFocus) {
-				zIndex = parseInt(components[name].ui.css('zIndex'), 10);
-				list[zIndex-50] = zIndex;
-			}
-		}
-
-		// Re-organize it to have a linear zIndex order (remove gap)
-		for (i = 0, j = 0, count = list.length; i < count; ++i) {
-			if (!list[i]) {
-				j++;
-				continue;
-			}
-			list[i] -= j;
-		}
-
-		// Apply new zIndex to list
-		for (name in components) {
-			if (this !== components[name] && components[name].__active && components[name].needFocus) {
-				zIndex = parseInt(components[name].ui.css('zIndex'), 10);
-				components[name].ui.css('zIndex', list[zIndex-50]);
-			}
-		}
-
-		// Push our zIndex at top
-		this.ui.css('zIndex', list.length + 50 - j);
+		ZIndexManager.focusComponent(this, this.manager.components);
 	};
 
 	
 	/**
-	 * add UI at the top of others
+	 * Place UI on top
 	 */
 	UIComponent.prototype.placeOnTop = function placeOnTop()
 	{
@@ -362,18 +377,7 @@ define(function( require )
 			return;
 		}
 
-		var components = this.manager.components;
-		var name, zIndex, list = [];
-
-		// Store components zIndex in a list
-		for (name in components) {
-			if (this !== components[name] && components[name].__active) {
-				zIndex = parseInt(components[name].ui.css('zIndex'), 10);
-				list.push(zIndex);
-			}
-		}
-		let lastZIndex = Math.max(...list);
-		this.ui.css('zIndex', lastZIndex + 1);
+		ZIndexManager.placeOnTop(this, this.manager.components);
 	};
 
 	/**
@@ -597,6 +601,7 @@ define(function( require )
 			Client.loadFiles( preloads );
 		}
 	};
+
 
 
 	/**

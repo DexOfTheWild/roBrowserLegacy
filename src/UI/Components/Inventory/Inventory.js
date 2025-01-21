@@ -158,7 +158,7 @@ define(function(require)
 		jQuery('.ItemInfo').remove();
 
 		// Save preferences
-		_preferences.show   =  this.ui.is(':visible');
+		_preferences.show = this.ui.__visible;
 		_preferences.reduce = !!_realSize;
 		_preferences.y      =  parseInt(this.ui.css('top'), 10);
 		_preferences.x      =  parseInt(this.ui.css('left'), 10);

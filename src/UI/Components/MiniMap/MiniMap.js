@@ -14,6 +14,8 @@ define(function (require)
 	
 	var MiniMap = require('./MiniMap/MiniMap');
 	var MiniMapV2 = require('./MiniMapV2/MiniMapV2');
+	MiniMap.closeOnEsc = false;
+	MiniMapV2.closeOnEsc = false;
 	
 	var UIVersionManager = require('UI/UIVersionManager');
 	

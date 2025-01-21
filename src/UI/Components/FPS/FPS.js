@@ -25,7 +25,7 @@ define(function(require)
 	 * Create Component
 	 */
 	var FPS = new UIComponent( 'FPS', htmlText, cssText );
-
+	FPS.closeOnEsc = false;
 	/**
 	 * @var {Preferences} Graphics
 	 */

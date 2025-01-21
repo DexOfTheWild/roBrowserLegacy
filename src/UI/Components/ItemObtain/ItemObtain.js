@@ -30,6 +30,7 @@ define(function(require)
 	 * Create component
 	 */
 	var ItemObtain = new UIComponent( 'ItemObtain', htmlText, cssText );
+	ItemObtain.closeOnEsc = false;
 
 
 	/**

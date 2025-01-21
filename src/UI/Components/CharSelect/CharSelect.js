@@ -17,6 +17,11 @@ define(function (require)
 	var CharSelectV3 = require('./CharSelectV3/CharSelectV3');
 	var CharSelectV4 = require('./CharSelectV4/CharSelectV4');
 	
+	CharSelect.closeOnEsc = false;
+	CharSelectV2.closeOnEsc = false;
+	CharSelectV3.closeOnEsc = false;
+	CharSelectV4.closeOnEsc = false;
+
 	var UIVersionManager = require('UI/UIVersionManager');
 	
 	var versionInfo = {
