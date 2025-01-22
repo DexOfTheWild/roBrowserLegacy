@@ -131,7 +131,7 @@ define(function( require )
 	Camera.altitudeRange = 15;
 	Camera.rotationFrom = -360;
 	Camera.rotationTo   =  360;
-	Camera.range        =  230; //240;
+	Camera.range = 200; //240;
 	Camera.zoomStep     =  15;
 	Camera.zoomStepMult =  1;
 
@@ -299,15 +299,15 @@ define(function( require )
 		this.currentMap = getModule('Renderer/MapRenderer').currentMap;
 
 		if (DB.isIndoor(this.currentMap)) {
-			this.zoomFinal = Preferences.indoorZoom || 150;
-			this.angleFinal[0] = 230;
+			this.zoomFinal = 30;
+			this.angleFinal[0] = 200;
 			this.angleFinal[1] = -40;
 			this.enable3RDPerson = false;
 		} else {
-			this.zoomFinal = Preferences.zoom || 150;
+			this.zoomFinal = 30;
 		}
 
-		//this.updateState();
+		this.updateState();
 	};
 
 
