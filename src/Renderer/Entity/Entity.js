@@ -519,6 +519,10 @@ define( function( require )
 			data.objecttype === Entity.TYPE_NPC_BIONIC;
 	};
 
+	Entity.prototype.isPC = function isPC(data) {
+		return data.objecttype === Entity.TYPE_PC;
+	};
+
 
 	/**
 	 * Export

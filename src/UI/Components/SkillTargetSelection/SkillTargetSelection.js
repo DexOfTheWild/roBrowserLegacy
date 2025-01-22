@@ -28,6 +28,7 @@ define(function(require)
 	var UIManager     = require('UI/UIManager');
 	var UIComponent   = require('UI/UIComponent');
 	var Cursor        = require('UI/CursorManager');
+	var SkillInfo = require('DB/Skills/SkillInfo');
 	var getModule   = require;
 
 	/**
@@ -214,9 +215,16 @@ define(function(require)
 		if (!_flag) {
 			return;
 		}
-		
+
 		if (Session.TouchTargeting || Session.EnhancedTargeting) {
 			var entityFocus = EntityManager.getFocusEntity();
+			if (skill.type === 16 && (!entityFocus || entityFocus.GID === Session.Entity.GID || entityFocus.objecttype === Entity.TYPE_MOB)) {
+				// Cast on self if support and nobody is focused
+				SkillTargetSelection.onUseSkillToId(_skill.SKID, _skill.useLevel ? _skill.useLevel : _skill.level, Session.Entity.GID);
+				SkillTargetSelection.remove();
+				return;
+			}
+
 			if(entityFocus){
 				if (_flag & (SkillTargetSelection.TYPE.PLACE)) {
 					SkillTargetSelection.onUseSkillToPos(_skill.SKID, _skill.useLevel ? _skill.useLevel : _skill.level, entityFocus.position[0], entityFocus.position[1]);
