@@ -40,7 +40,7 @@ define(function( require )
 	
 	const C_THIRDPERSON_TRESHOLD_ZOOM = 1;
 	const C_MIN_V_ANGLE_3RDPERSON = 175;
-	const C_MAX_V_ANGLE_3RDPERSON = 230;
+	const C_MAX_V_ANGLE_3RDPERSON = 210;
 	
 	const C_MIN_V_ANGLE_1STPERSON = 90;
 	const C_MAX_V_ANGLE_1STPERSON = 270;
