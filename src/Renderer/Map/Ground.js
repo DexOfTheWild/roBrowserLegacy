@@ -103,6 +103,7 @@ define(['Utils/WebGL', 'Utils/Texture', 'Preferences/Map', 'Engine/SessionStorag
 		attribute vec2 aTextureCoord;
 		attribute vec2 aLightmapCoord;
 		attribute vec2 aTileColorCoord;
+		attribute float aCustomAttribute;
 
 		varying vec2 vTextureCoord;
 		varying vec2 vLightmapCoord;
@@ -110,11 +111,13 @@ define(['Utils/WebGL', 'Utils/Texture', 'Preferences/Map', 'Engine/SessionStorag
 		varying vec3 vNormal;
 		varying vec3 vFragPos;
 		varying float vLightWeighting;
+		varying float vCustomValue;
 
 		uniform mat4 uModelViewMat;
 		uniform mat4 uProjectionMat;
 		uniform mat3 uNormalMat;
 		uniform vec3 uLightDirection;
+		uniform float uTime;
 
 		void main(void) {
 			vec4 worldPos = uModelViewMat * vec4(aPosition, 1.0);
@@ -133,6 +136,11 @@ define(['Utils/WebGL', 'Utils/Texture', 'Preferences/Map', 'Engine/SessionStorag
 			vec4 lDirection = uModelViewMat * vec4(uLightDirection, 0.0);
 			vec3 dirVector = normalize(lDirection.xyz);
 			vLightWeighting = max(dot(vNormal, dirVector), 0.1);
+
+			// Calculate custom wave effect
+			float wave = sin(uTime * 0.001 + aPosition.x * 0.1);
+			wave = wave * (1.0 - max(wave, 0.0) * 0.5);
+			vCustomValue = wave * 0.5 + 0.5;
 		}
 	`;
 
@@ -140,6 +148,7 @@ define(['Utils/WebGL', 'Utils/Texture', 'Preferences/Map', 'Engine/SessionStorag
 	 * @var {string} Fragment Shader
 	 */
 		var _fragmentShader = `
+		#version 100
 		precision highp float;
 
 		// Maximum number of point lights
@@ -151,6 +160,7 @@ define(['Utils/WebGL', 'Utils/Texture', 'Preferences/Map', 'Engine/SessionStorag
 		varying vec3 vNormal;
 		varying vec3 vFragPos;
 		varying float vLightWeighting;
+		varying float vCustomValue;
 
 		uniform sampler2D uDiffuse;
 		uniform sampler2D uLightmap;
@@ -190,6 +200,9 @@ define(['Utils/WebGL', 'Utils/Texture', 'Preferences/Map', 'Engine/SessionStorag
 		// Transition factor
 		uniform float uTransitionFactor;  // 0.0 to 1.0
 
+		// Custom effect uniform
+		uniform float uEffectStrength;
+
 		// Calculate point light contribution
 		vec3 calculatePointLight(vec3 position, vec3 color, float range,
 							   float constant, float linear, float quadratic,
@@ -217,6 +230,23 @@ define(['Utils/WebGL', 'Utils/Texture', 'Preferences/Map', 'Engine/SessionStorag
 			return color * diff * attenuation * 0.7;
 		}
 
+		// Add color enhancement functions
+		vec3 saturate(vec3 color, float adjustment) {
+			// Convert to HSL-like space
+			float maxVal = max(max(color.r, color.g), color.b);
+			float minVal = min(min(color.r, color.g), color.b);
+			vec3 adjusted = (color - mix(vec3(minVal), vec3(maxVal), 0.5)) * adjustment + color;
+			return clamp(adjusted, 0.0, 1.0);
+		}
+
+		vec3 enhanceColor(vec3 color) {
+			// Increase saturation
+			vec3 saturated = saturate(color, 0.5);
+
+			// Slightly boost brightness while preserving contrast
+			return saturated * 1.0;
+		}
+
 		void main(void) {
 			vec4 texture = texture2D(uDiffuse, vTextureCoord.st);
 			float lightWeight = 1.0;
@@ -233,8 +263,8 @@ define(['Utils/WebGL', 'Utils/Texture', 'Preferences/Map', 'Engine/SessionStorag
 
 			// Calculate directional light with transition
 			float dayFactor = uTransitionFactor;
-			vec3 directionalLight = uLightDiffuse * (lightWeight * 0.8 * dayFactor);
-			vec3 ambient = uLightAmbient * (uLightOpacity * 0.7 * max(dayFactor, 0.2));
+			vec3 directionalLight = uLightDiffuse * (lightWeight * 0.7 * dayFactor);
+			vec3 ambient = uLightAmbient * (uLightOpacity * 0.6 * max(dayFactor, 0.2));
 
 			// Calculate point lights contribution
 			vec3 pointLightContribution = vec3(0.0);
@@ -258,8 +288,21 @@ define(['Utils/WebGL', 'Utils/Texture', 'Preferences/Map', 'Engine/SessionStorag
 			vec3 lighting = ambient + directionalLight + pointLightContribution;
 
 			// Apply lighting to texture
-			vec3 enhancedColor = texture.rgb;
+			vec3 enhancedColor = enhanceColor(texture.rgb);
 			gl_FragColor = vec4(enhancedColor * lighting, texture.a);
+
+			// Apply custom wave effect
+			gl_FragColor.rgb += vec3(vCustomValue * uEffectStrength);
+
+			// Apply lightmap if enabled
+			if (uLightMapUse) {
+				vec4 lightmap = texture2D(uLightmap, vLightmapCoord.st);
+				// Modulate lighting with lightmap alpha for shadows
+				lighting *= lightmap.a;
+				// Optionally, combine lightmap color
+				// lighting += lightmap.rgb * 0.2; // Adjust factor as needed
+				gl_FragColor.rgb *= lighting;
+			}
 
 			// Apply fog if enabled
 			if (uFogUse) {
@@ -348,13 +391,20 @@ define(['Utils/WebGL', 'Utils/Texture', 'Preferences/Map', 'Engine/SessionStorag
 			gl.uniform3fv(uniform.uPointLightColor1, light1.color);
 			gl.uniform1f(uniform.uPointLightRange1, light1.range);
 			gl.uniform1f(uniform.uPointLightConstant1, light1.attenuation.constant);
-			gl.uniform1f(uniform.uPointLightLinear1, light1.attenuation.quadratic);
+			gl.uniform1f(uniform.uPointLightLinear1, light1.attenuation.linear);
 			gl.uniform1f(uniform.uPointLightQuadratic1, light1.attenuation.quadratic);
 			gl.uniform1i(uniform.uPointLightEnabled1, light1.enabled ? 1 : 0);
 		}
 
-		// Render lightmap ?
-		gl.uniform1i(  uniform.uLightMapUse, Preferences.lightmap );
+		// Bind lightmap
+		if (Preferences.lightmap) {
+			gl.activeTexture(gl.TEXTURE1);
+			gl.bindTexture(gl.TEXTURE_2D, _lightmap);
+			gl.uniform1i(uniform.uLightmap, 1);
+		}
+
+		// Ensure uLightMapUse is set based on preferences
+		gl.uniform1i(uniform.uLightMapUse, Preferences.lightmap ? 1 : 0);
 
 		// Fog settings
 		gl.uniform1i(  uniform.uFogUse,   fog.use && fog.exist );
@@ -365,12 +415,17 @@ define(['Utils/WebGL', 'Utils/Texture', 'Preferences/Map', 'Engine/SessionStorag
 		// Pass transition factor to shader
 		gl.uniform1f(uniform.uTransitionFactor, transitionFactor);
 
+		// Cloud wave effect uniforms
+		gl.uniform1f(uniform.uTime, currentTime);
+		gl.uniform1f(uniform.uEffectStrength, 0.1); // Adjust as needed
+
 		// Enable all attributes
 		gl.enableVertexAttribArray( attribute.aPosition );
 		gl.enableVertexAttribArray( attribute.aVertexNormal );
 		gl.enableVertexAttribArray( attribute.aTextureCoord );
 		gl.enableVertexAttribArray( attribute.aLightmapCoord );
 		gl.enableVertexAttribArray( attribute.aTileColorCoord );
+		gl.enableVertexAttribArray(attribute.aCustomAttribute);
 
 		gl.bindBuffer( gl.ARRAY_BUFFER, _buffer );
 
@@ -380,25 +435,17 @@ define(['Utils/WebGL', 'Utils/Texture', 'Preferences/Map', 'Engine/SessionStorag
 		gl.vertexAttribPointer( attribute.aTextureCoord,   2, gl.FLOAT, false, 12*4,  6*4 );
 		gl.vertexAttribPointer( attribute.aLightmapCoord,  2, gl.FLOAT, false, 12*4,  8*4 );
 		gl.vertexAttribPointer( attribute.aTileColorCoord, 2, gl.FLOAT, false, 12*4, 10*4 );
+		gl.vertexAttribPointer(attribute.aCustomAttribute, 1, gl.FLOAT, false, 12 * 4, 12 * 4);
 
 		// Texture Atlas
 		gl.activeTexture( gl.TEXTURE0 );
 		gl.bindTexture( gl.TEXTURE_2D, _textureAtlas );
 		gl.uniform1i( uniform.uDiffuse, 0 );
 
-		// LightMap
-		gl.activeTexture( gl.TEXTURE1 );
-		gl.bindTexture( gl.TEXTURE_2D, _lightmap );
-		gl.uniform1i( uniform.uLightmap, 1 );
-
 		// Tile Color
 		gl.activeTexture( gl.TEXTURE2 );
 		gl.bindTexture( gl.TEXTURE_2D, _tileColor );
 		gl.uniform1i( uniform.uTileColor, 2 );
-
-		// Cloud shadow effect
-		gl.uniform1f(uniform.uTime, performance.now());
-		gl.uniform1f(uniform.uEffectStrength, 0.2); // Adjust effect strength
 
 		// Send mesh
 		gl.drawArrays(  gl.TRIANGLES, 0, _vertCount );
@@ -409,6 +456,7 @@ define(['Utils/WebGL', 'Utils/Texture', 'Preferences/Map', 'Engine/SessionStorag
 		gl.disableVertexAttribArray( attribute.aTextureCoord );
 		gl.disableVertexAttribArray( attribute.aLightmapCoord );
 		gl.disableVertexAttribArray( attribute.aTileColorCoord );
+		gl.disableVertexAttribArray(attribute.aCustomAttribute);
 	}
 
 
@@ -422,22 +470,19 @@ define(['Utils/WebGL', 'Utils/Texture', 'Preferences/Map', 'Engine/SessionStorag
 	 */
 	function initLightmap( gl, lightmap, size )
 	{
-		var width, height;
-
-		width  = WebGL.toPowerOfTwo( Math.round( Math.sqrt(size) ) * 8 );
-		height = WebGL.toPowerOfTwo( Math.ceil(  Math.sqrt(size) ) * 8 );
+		var width = WebGL.toPowerOfTwo(Math.round(Math.sqrt(size)) * 8);
+		var height = WebGL.toPowerOfTwo(Math.ceil(Math.sqrt(size)) * 8);
 
 		if (!_lightmap) {
 			_lightmap = gl.createTexture();
 		}
 
-		// Send texture to GPU
-		gl.bindTexture( gl.TEXTURE_2D, _lightmap );
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, lightmap );
+		gl.bindTexture(gl.TEXTURE_2D, _lightmap);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, lightmap);
 
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-		gl.generateMipmap( gl.TEXTURE_2D );
+		gl.generateMipmap(gl.TEXTURE_2D);
 	}
 
 
@@ -595,6 +640,9 @@ define(['Utils/WebGL', 'Utils/Texture', 'Preferences/Map', 'Engine/SessionStorag
 		// Link program	if not loaded
 		if (!_program) {
 			_program = WebGL.createShaderProgram(gl, _vertexShader, _fragmentShader);
+			_program.uniform.uEffectStrength = gl.getUniformLocation(_program, 'uEffectStrength');
+			_program.uniform.uTime = gl.getUniformLocation(_program, 'uTime');
+			_program.attribute.aCustomAttribute = gl.getAttribLocation(_program, 'aCustomAttribute');
 		}
 
 		gl.bindBuffer( gl.ARRAY_BUFFER, _buffer );
