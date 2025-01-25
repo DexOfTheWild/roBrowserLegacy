@@ -35,6 +35,7 @@ define(function( require )
 	var ItemListWindowSelection  = require('UI/Components/MakeItemSelection/ItemListWindowSelection');
 
     var EffectManager = require('Renderer/EffectManager');
+	var EntityManager = require('Renderer/EntityManager');
 
 
 	/**
@@ -61,7 +62,7 @@ define(function( require )
 	{
 		var x = pkt.xPos - 0.5 + pkt.subX / 12;
 		var y = pkt.yPos - 0.5 + pkt.subY / 12;
-		var z = Altitude.getCellHeight( x, y ) + 5.0;
+		var z = Altitude.getCellHeight(x, y);
 
 		ItemObject.add(
 			pkt.ITAID,
@@ -84,16 +85,33 @@ define(function( require )
 	 */
 	function onItemInGroundVanish( pkt )
 	{
-		ItemObject.remove( pkt.ITAID );
+		var entity = EntityManager.get(pkt.ITAID);
+
+		// If entity exists and is being magnetically picked up
+		if (entity && entity.magneticPickup) {
+			if (entity.readyForRemoval) {
+				// Animation complete, can remove now
+				if (entity.dropEffect) {
+					entity.dropEffect.free();
+				}
+				ItemObject.remove(pkt.ITAID);
+			} else {
+				// Animation still playing, mark for removal when complete
+				entity.serverRequestedRemoval = true;
+			}
+		} else {
+			// Normal removal for non-magnetic items
+			ItemObject.remove(pkt.ITAID);
+		}
 	}
 
 
 	/**
-	 * Answer when player pick the item
+	 * Server's response about the item pickup
 	 *
 	 * @param {object} pkt - PACKET.ZC.ITEM_PICKUP_ACK3
 	 */
-	function onItemPickAnswer( pkt )
+	function onItemPickupResponse(pkt)
 	{
 		// Fail
 		if (pkt.result !== 0) {
@@ -618,13 +636,13 @@ define(function( require )
 		Network.hookPacket( PACKET.ZC.ITEM_FALL_ENTRY2,       onItemSpamInGround );
 		Network.hookPacket( PACKET.ZC.ITEM_FALL_ENTRY3,       onItemSpamInGround );
 		Network.hookPacket( PACKET.ZC.ITEM_DISAPPEAR,         onItemInGroundVanish);
-		Network.hookPacket( PACKET.ZC.ITEM_PICKUP_ACK,        onItemPickAnswer );
-		Network.hookPacket( PACKET.ZC.ITEM_PICKUP_ACK2,       onItemPickAnswer );
-		Network.hookPacket( PACKET.ZC.ITEM_PICKUP_ACK3,       onItemPickAnswer );
-		Network.hookPacket( PACKET.ZC.ITEM_PICKUP_ACK5,       onItemPickAnswer );
-		Network.hookPacket( PACKET.ZC.ITEM_PICKUP_ACK6, 			onItemPickAnswer);
-		Network.hookPacket( PACKET.ZC.ITEM_PICKUP_ACK7, 			onItemPickAnswer);
-		Network.hookPacket( PACKET.ZC.ITEM_PICKUP_ACK8, 			onItemPickAnswer);
+		Network.hookPacket(PACKET.ZC.ITEM_PICKUP_ACK, onItemPickupResponse);
+		Network.hookPacket(PACKET.ZC.ITEM_PICKUP_ACK2, onItemPickupResponse);
+		Network.hookPacket(PACKET.ZC.ITEM_PICKUP_ACK3, onItemPickupResponse);
+		Network.hookPacket(PACKET.ZC.ITEM_PICKUP_ACK5, onItemPickupResponse);
+		Network.hookPacket(PACKET.ZC.ITEM_PICKUP_ACK6, onItemPickupResponse);
+		Network.hookPacket(PACKET.ZC.ITEM_PICKUP_ACK7, onItemPickupResponse);
+		Network.hookPacket(PACKET.ZC.ITEM_PICKUP_ACK8, onItemPickupResponse);
 		Network.hookPacket( PACKET.ZC.ITEM_THROW_ACK,         onIventoryRemoveItem );
 		Network.hookPacket( PACKET.ZC.NORMAL_ITEMLIST,        onInventorySetList );
 		Network.hookPacket( PACKET.ZC.NORMAL_ITEMLIST2,       onInventorySetList );

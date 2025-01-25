@@ -53,11 +53,11 @@ function(   DB,            EntityManager,            EffectManager,            E
 		}
 		
 		// Item falling
-		entity.animations.add(function(tick) {
-			var level          = Altitude.getCellHeight(entity.position[0], entity.position[1]);
-			entity.position[2] = Math.max(level, z - (tick / 40));
-			return entity.position[2] === level;
-		});
+		// entity.animations.add(function(tick) {
+		// 	var level          = Altitude.getCellHeight(entity.position[0], entity.position[1]);
+		// 	entity.position[2] = Math.max(level, z - (tick / 40));
+		// 	return entity.position[2] === level;
+		// });
 
 		EntityManager.add(entity);
 	}

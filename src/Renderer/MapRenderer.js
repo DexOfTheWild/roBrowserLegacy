@@ -578,6 +578,10 @@ define(function( require )
 			// 	gl.uniform1i(uniform[`uPointLightEnabled${index}`], light.enabled ? 1 : 0);
 			// }
 		}
+
+		// Check for and update magnetic item pickups
+		EntityManager.checkNearbyItems(Session.Entity, 2); // 2 cell radius for pickup
+		EntityManager.updateMagneticPickups(Session.Entity);
 	};
 
 

@@ -96,8 +96,7 @@ define(function( require )
 				return;
 
 			case Entity.TYPE_ITEM:
-				Cursor.setType( Cursor.ACTION.PICK, true, 0 );
-				break;
+				return true;
 		}
 
 
@@ -165,34 +164,34 @@ define(function( require )
 			case Entity.TYPE_MERC:
 				break;
 
-			case Entity.TYPE_ITEM:
-				Cursor.setType( Cursor.ACTION.PICK, true, 2 );
-				if(PACKETVER.value >= 20180307) {
-					pkt       = new PACKET.CZ.ITEM_PICKUP2();
-				} else {
-					pkt       = new PACKET.CZ.ITEM_PICKUP();
-				}
-				pkt.ITAID = this.GID;
+			// case Entity.TYPE_ITEM:
+			// 	Cursor.setType( Cursor.ACTION.PICK, true, 2 );
+			// 	if(PACKETVER.value >= 20180307) {
+			// 		pkt       = new PACKET.CZ.ITEM_PICKUP2();
+			// 	} else {
+			// 		pkt       = new PACKET.CZ.ITEM_PICKUP();
+			// 	}
+			// 	pkt.ITAID = this.GID;
 
-				// Too far, walking to it
-				if (vec2.distance(Session.Entity.position, this.position) > 2) {
-					Session.moveAction = pkt;
+			// 	// Too far, walking to it
+			// 	if (vec2.distance(Session.Entity.position, this.position) > 2) {
+			// 		Session.moveAction = pkt;
 
-					if(PACKETVER.value >= 20180307) {
-						pkt         = new PACKET.CZ.REQUEST_MOVE2();
-					} else {
-						pkt         = new PACKET.CZ.REQUEST_MOVE();
-					}
-					pkt.dest[0] = Mouse.world.x;
-					pkt.dest[1] = Mouse.world.y;
-					Network.sendPacket(pkt);
+			// 		if(PACKETVER.value >= 20180307) {
+			// 			pkt         = new PACKET.CZ.REQUEST_MOVE2();
+			// 		} else {
+			// 			pkt         = new PACKET.CZ.REQUEST_MOVE();
+			// 		}
+			// 		pkt.dest[0] = Mouse.world.x;
+			// 		pkt.dest[1] = Mouse.world.y;
+			// 		Network.sendPacket(pkt);
 
-					return true;
-				}
+			// 		return true;
+			// 	}
 
-				Network.sendPacket(pkt);
-				Session.Entity.lookTo( this.position[0], this.position[1] );
-				return true;
+			// 	Network.sendPacket(pkt);
+			// 	Session.Entity.lookTo( this.position[0], this.position[1] );
+			// 	return true;
 
 			case Entity.TYPE_NPC:
 			case Entity.TYPE_NPC2:

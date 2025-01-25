@@ -15,11 +15,15 @@ define(function( require )
 	// Load dependencies
 	var Session        = require('Engine/SessionStorage');
 	var Entity         = require('./Entity/Entity');
+	var Network = require('Network/NetworkManager');
+	var PACKETVER = require('Network/PacketVerManager');
+	var PACKET = require('Network/PacketStructure');
 	var SpriteRenderer = require('./SpriteRenderer');
 	var Mouse          = require('Controls/MouseEventHandler');
 	var KEYS           = require('Controls/KeyEventHandler');
 	var PathFinding	   = require('Utils/PathFinding');
 	var Altitude       = require('Renderer/Map/Altitude');
+	var Renderer = require('Renderer/Renderer');
 	var NPCInterceptor = require('Engine/NPCInterceptor');
 
 	var _list = [];
@@ -405,6 +409,118 @@ define(function( require )
 		return count;
 	}
 
+	/**
+	 * Check for items near the player and initiate magnetic pickup
+	 * @param {Entity} playerEntity - The player's entity
+	 * @param {number} radius - Pickup radius in game units
+	 */
+	function checkNearbyItems(playerEntity, radius) {
+		if (!playerEntity || playerEntity.action === playerEntity.ACTION.DIE) {
+			return;
+		}
+
+		_list.forEach((entity) => {
+			// Only process items that aren't already being picked up
+			if (entity.objecttype === Entity.TYPE_ITEM && !entity.magneticPickup) {
+				var distance = getPathDistance(playerEntity, entity);
+
+				// If within radius, start magnetic pickup
+				if (distance && distance <= radius) {
+					entity.magneticPickup = true;
+					entity.pickupStartPosition = entity.position.slice();
+					entity.pickupStartTime = Renderer.tick;
+					entity.pickupPhase = 'hover'; // Start with hover phase
+
+					// Store original height for hover animation
+					entity.originalHeight = entity.position[2];
+					// Make item float up slightly (reduced height)
+					entity.position[2] += 0.05;
+				}
+			}
+		});
+	}
+
+	/**
+	 * Update magnetic pickup movement
+	 * @param {Entity} playerEntity - The player's entity
+	 */
+	function updateMagneticPickups(playerEntity) {
+		if (!playerEntity) return;
+
+		_list.forEach((entity) => {
+			if (entity.magneticPickup) {
+				const hoverDuration = 1000; // 1 second hover
+				const moveDuration = 500; // 0.5 second movement
+				const serverTimeout = 10000; // 3 second timeout for server response
+				const timeSinceStart = Renderer.tick - entity.pickupStartTime;
+
+				// Check for server timeout after item starts moving
+				if (entity.pickupPhase === 'move' &&
+					(Renderer.tick - entity.moveStartTime) > serverTimeout &&
+					!entity.serverRequestedRemoval) {
+
+					// Reset item position and state
+					entity.magneticPickup = false;
+					entity.position = entity.pickupStartPosition.slice();
+					entity.position[2] = entity.originalHeight; // Reset height
+					return;
+				}
+
+				if (entity.pickupPhase === 'hover') {
+					// Wobbly hover animation
+					const hoverProgress = timeSinceStart / hoverDuration;
+					const wobbleFrequency = 3;
+					const wobbleAmplitude = 0.3;
+
+					entity.position[2] = entity.originalHeight + 0.1 + 
+						Math.sin(hoverProgress * Math.PI * wobbleFrequency) * wobbleAmplitude;
+
+					// Switch to move phase after hover duration
+					if (timeSinceStart >= hoverDuration) {
+						entity.pickupPhase = 'move';
+						entity.moveStartTime = Renderer.tick;
+						entity.moveStartPosition = entity.position.slice();
+
+						// Send pickup packet as soon as item starts moving to player
+						var pkt;
+						if (PACKETVER.value >= 20180307) {
+							pkt = new PACKET.CZ.ITEM_PICKUP2();
+						} else {
+							pkt = new PACKET.CZ.ITEM_PICKUP();
+						}
+						pkt.ITAID = entity.GID;
+						Network.sendPacket(pkt);
+					}
+				}
+				else if (entity.pickupPhase === 'move') {
+					const moveProgress = Math.min(1.0, (Renderer.tick - entity.moveStartTime) / moveDuration);
+
+					// Interpolate position towards player with slight arc
+					const t = moveProgress;
+					entity.position[0] = entity.moveStartPosition[0] + (playerEntity.position[0] - entity.moveStartPosition[0]) * t;
+					entity.position[1] = entity.moveStartPosition[1] + (playerEntity.position[1] - entity.moveStartPosition[1]) * t;
+
+					const arcHeight = 0.45;
+					entity.position[2] = entity.moveStartPosition[2] + 
+						arcHeight * Math.sin(Math.PI * t);
+
+					// When animation completes, mark entity as ready for removal
+					if (moveProgress >= 1.0) {
+						entity.readyForRemoval = true;
+
+						// If server already sent removal packet, remove now
+						if (entity.serverRequestedRemoval) {
+							if (entity.dropEffect) {
+								entity.dropEffect.free();
+							}
+							EntityManager.remove(entity.GID);
+						}
+					}
+				}
+			}
+		});
+	}
+
 	var EntityManager = {
 		free:                 free,
 		add:                  addEntity,
@@ -423,6 +539,8 @@ define(function( require )
 		intersect:            intersect,
 		setSupportPicking:    setSupportPicking,
 		getPathDistance: getPathDistance,
+		checkNearbyItems: checkNearbyItems,
+		updateMagneticPickups: updateMagneticPickups,
 	};
 
 
